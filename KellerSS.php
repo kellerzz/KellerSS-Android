@@ -1640,9 +1640,10 @@ escolheropcoes:
                         $resultadoStat = shell_exec($comandoStat);
 
                         if (strpos($resultadoStat, 'File:') !== false) {
-                            preg_match('/Access: (\d{4}-\d{2}-\d{2}) \d{2}:\d{2}:\d{2}/', $resultadoStat, $matchAccess);
-                            preg_match('/Modify: (\d{4}-\d{2}-\d{2}) \d{2}:\d{2}:\d{2}/', $resultadoStat, $matchModify);
-                            preg_match('/Change: (\d{4}-\d{2}-\d{2}) \d{2}:\d{2}:\d{2}/', $resultadoStat, $matchChange);
+                            preg_match('/Access: (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/', $resultadoStat, $matchAccess);
+                            preg_match('/Modify: (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/', $resultadoStat, $matchModify);
+                            preg_match('/Change: (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/', $resultadoStat, $matchChange);
+
 
                             if ($matchAccess && $matchModify && $matchChange) {
                                 $accessDate = $matchAccess[1];
@@ -1664,8 +1665,9 @@ escolheropcoes:
                                 
                                     echo $bold . $vermelho . "[!] Possível Bypass Holograma detectado (ACCESS, MODIFY, CHANGE iguais)\n";
                                     echo $bold . $vermelho . "[!] Arquivo: $nomeArquivo\n";
-                                    $dataAccessFormatada = DateTime::createFromFormat('Y-m-d', $accessDate)?->format('d-m-Y') ?? $accessDate;
-                                    $dataInstallFormatada = DateTime::createFromFormat('Y-m-d', $firstInstallDate)?->format('d-m-Y') ?? $firstInstallDate;
+                                    $dataAccessFormatada = DateTime::createFromFormat('Y-m-d H:i:s', $accessDate)?->format('d-m-Y H:i:s') ?? $accessDate;
+                                    $dataInstallFormatada = DateTime::createFromFormat('Y-m-d H:i:s', $firstInstallDate)?->format('d-m-Y H:i:s') ?? $firstInstallDate;
+
 
                                     echo $bold . $vermelho . "[!] Data da modificação (Access/Modify/Change): $dataAccessFormatada\n";
                                     echo $bold . $vermelho . "[!] Data de instalação do FF: $dataInstallFormatada\n";
