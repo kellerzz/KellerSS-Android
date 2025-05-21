@@ -695,11 +695,16 @@ escolheropcoes:
                                 
                                     echo $bold . $laranja . "[!] Possível Bypass Holograma detectado (ACCESS, MODIFY, CHANGE iguais)\n";
                                     echo $bold . $laranja . "[!] Arquivo: $nomeArquivo\n";
-                                    $dataAccessFormatada = DateTime::createFromFormat('Y-m-d', $accessDate)?->format('d-m-Y') ?? $accessDate;
-                                    $dataInstallFormatada = DateTime::createFromFormat('Y-m-d', $firstInstallDate)?->format('d-m-Y') ?? $firstInstallDate;
+
+                                    $dateTimeAccess = DateTime::createFromFormat('Y-m-d H:i:s', $accessDate);
+                                    $dataAccessFormatada = $dateTimeAccess ? $dateTimeAccess->format('d-m-Y H:i:s') : $accessDate;
+
+                                    $dateTimeInstall = DateTime::createFromFormat('Y-m-d H:i:s', $firstInstallDate);
+                                    $dataInstallFormatada = $dateTimeInstall ? $dateTimeInstall->format('d-m-Y H:i:s') : $firstInstallDate;
 
                                     echo $bold . $laranja . "[!] Data da modificação (Access/Modify/Change): $dataAccessFormatada\n";
                                     echo $bold . $laranja . "[!] Data de instalação do FF: $dataInstallFormatada\n";
+
                                     echo $bold . $laranja . "[!] Se for após a partida, aplique o W.O!\n\n";
                                     continue;
                                 }
@@ -1665,12 +1670,16 @@ escolheropcoes:
                                 
                                     echo $bold . $laranja . "[!] Possível Bypass Holograma detectado (ACCESS, MODIFY, CHANGE iguais)\n";
                                     echo $bold . $laranja . "[!] Arquivo: $nomeArquivo\n";
-                                    $dataAccessFormatada = DateTime::createFromFormat('Y-m-d H:i:s', $accessDate)?->format('d-m-Y H:i:s') ?? $accessDate;
-                                    $dataInstallFormatada = DateTime::createFromFormat('Y-m-d H:i:s', $firstInstallDate)?->format('d-m-Y H:i:s') ?? $firstInstallDate;
 
+                                    $dateTimeAccess = DateTime::createFromFormat('Y-m-d H:i:s', $accessDate);
+                                    $dataAccessFormatada = $dateTimeAccess ? $dateTimeAccess->format('d-m-Y H:i:s') : $accessDate;
+
+                                    $dateTimeInstall = DateTime::createFromFormat('Y-m-d H:i:s', $firstInstallDate);
+                                    $dataInstallFormatada = $dateTimeInstall ? $dateTimeInstall->format('d-m-Y H:i:s') : $firstInstallDate;
 
                                     echo $bold . $laranja . "[!] Data da modificação (Access/Modify/Change): $dataAccessFormatada\n";
                                     echo $bold . $laranja . "[!] Data de instalação do FF: $dataInstallFormatada\n";
+
                                     echo $bold . $laranja . "[!] Se for após a partida, aplique o W.O!\n\n";
                                     continue;
                                 }
