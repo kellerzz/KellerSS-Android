@@ -366,7 +366,7 @@ escolheropcoes:
                 
                         // Motivo 1 - Access posterior ao Modify
                         if ($accessTime > $modifyTime) {
-                            $motivos[] = "Motivo 1 - " . basename($arquivo);
+                            $motivos[] = "Motivo 1 - Access posterior ao Modify" . basename($arquivo);
                         }
                 
                         // Motivo 2 - Timestamps com .000
@@ -375,12 +375,12 @@ escolheropcoes:
                             preg_match('/\.0+$/', $dataModify) ||
                             preg_match('/\.0+$/', $dataChange)
                         ) {
-                            $motivos[] = "Motivo 2 - " . basename($arquivo);
+                            $motivos[] = "Motivo 2 - Timestamps com .000" . basename($arquivo);
                         }
                 
                         // Motivo 3 - Modify diferente de Change no arquivo
                         if ($dataModify !== $dataChange) {
-                            $motivos[] = "Motivo 3 - " . basename($arquivo);
+                            $motivos[] = "Motivo 3 - Modify diferente de Change no arquivo" . basename($arquivo);
                         }
                 
                         // Motivo 4 - Nome do arquivo não bate com Modify
@@ -407,7 +407,7 @@ escolheropcoes:
                                     $modifyFormatado = date('Y-m-d H:i:s', $modifyTimestamp);
 
                                     if ($nomeFormatado !== $modifyFormatado) {
-                                        $motivos[] = "Motivo 4 - " . basename($arquivo);
+                                        $motivos[] = "Motivo 4 - Nome do arquivo não bate com Modify" . basename($arquivo);
                                     }
                                 } else {
                                     $motivos[] = "Motivo 4 - erro ao converter timestamps (Modify: $dataModifyLimpo, Nome: {$match[1]})";
@@ -422,7 +422,7 @@ escolheropcoes:
                             $jsonAccess = trim(preg_replace('/ -\d{4}$/', '', $matchJsonAccess[1]));
                             $dataBinTimes = [$dataAccess, $dataModify, $dataChange];
                             if (!in_array($jsonAccess, $dataBinTimes)) {
-                                $motivos[] = "Motivo 8 - " . basename($jsonPath);
+                                $motivos[] = "Motivo 8 - Access do .json diferente dos tempos do .bin" . basename($jsonPath);
                             }
                         }
                         if (!$jsonStat) {
@@ -447,26 +447,48 @@ escolheropcoes:
                 
                         // Motivo 7 - Pasta modificada após o último replay
                         if ($ultimoModifyTime && $pastaModifyTime > $ultimoModifyTime) {
-                            $motivos[] = "Motivo 7 - ";
+                            $motivos[] = "Motivo 7 - Pasta modificada após o último replay";
                         }
                         if ($ultimoChangeTime && $pastaChangeTime > $ultimoChangeTime) {
-                            $motivos[] = "Motivo 7 - ";
+                            $motivos[] = "Motivo 7 - Pasta modificada após o último replay";
                         }
                 
                         // Motivo 5 - Access, Modify e Change idênticos
                         if ($timestamps['Access'] === $timestamps['Modify'] && $timestamps['Modify'] === $timestamps['Change']) {
-                            $motivos[] = "Motivo 5 - ";
+                            $motivos[] = "Motivo 5 - Access, Modify e Change idênticos";
                         }
                 
                         // Motivo 6 - Milissegundos .000 na pasta
                         if (preg_match('/\.0+$/', $timestamps['Modify']) || preg_match('/\.0+$/', $timestamps['Change'])) {
-                            $motivos[] = "Motivo 6 -";
+                            $motivos[] = "Motivo 6 - Milissegundos .000 na pasta";
                         }
                 
                         // Motivo 11 - Modify diferente de Change na pasta
                         if ($timestamps['Modify'] !== $timestamps['Change']) {
-                            $motivos[] = "Motivo 11 - ";
+                            $motivos[] = "Motivo 11 - Modify diferente de Change na pasta";
                         }
+
+                        // Motivo 12 - Change da pasta MReplays diferente dos Access dos arquivos
+                        if ($arquivoMaisRecente && isset($timestamps['Change'])) {
+                            $binAccessCompleto = $matchAccess[1] ?? '';
+                            $jsonAccessCompleto = '';
+
+                            $jsonPath = preg_replace('/\.bin$/', '.json', $arquivoMaisRecente);
+                            $jsonStatCompleto = shell_exec('adb shell "stat ' . escapeshellarg($jsonPath) . ' 2>/dev/null"');
+
+                            if ($jsonStatCompleto && preg_match('/Access: (.*?)\n/', $jsonStatCompleto, $matchJsonAccessCompleto)) {
+                                $jsonAccessCompleto = trim($matchJsonAccessCompleto[1]);
+                            }
+
+                            $changeMReplays = trim($timestamps['Change']);
+
+                            if ($binAccessCompleto !== $changeMReplays && $jsonAccessCompleto !== $changeMReplays) {
+                                $motivos[] = "Motivo 12 - Change da pasta MReplays não bate com Access do .bin ou .json";
+                            }
+                        }
+
+
+
                 
                         // Motivo 9 - Nome não bate com Modify da pasta + milissegundos suspeitos
                         if ($arquivoMaisRecente && isset($timestamps['Access'])) {
@@ -479,7 +501,7 @@ escolheropcoes:
                                     $todosZeros = preg_match('/^0+$/', $milisegundosMatch[0]);
                                     $condicaoValida = ($doisPrimeiros <= 90 && preg_match('/^0+$/', $restante));
                                     if (($todosZeros || $condicaoValida) && $nomeNormalizado !== $modifyPastaNormalizado) {
-                                        $motivos[] = "Motivo 9 - " . basename($arquivoMaisRecente);
+                                        $motivos[] = "Motivo 9 - Nome não bate com Modify da pasta + milissegundos suspeitos" . basename($arquivoMaisRecente);
                                     }
                                 }
                             }
@@ -1340,7 +1362,7 @@ escolheropcoes:
                 
                         // Motivo 1 - Access posterior ao Modify
                         if ($accessTime > $modifyTime) {
-                            $motivos[] = "Motivo 1 - " . basename($arquivo);
+                            $motivos[] = "Motivo 1 - Access posterior ao Modify" . basename($arquivo);
                         }
                 
                         // Motivo 2 - Timestamps com .000
@@ -1349,12 +1371,12 @@ escolheropcoes:
                             preg_match('/\.0+$/', $dataModify) ||
                             preg_match('/\.0+$/', $dataChange)
                         ) {
-                            $motivos[] = "Motivo 2 - " . basename($arquivo);
+                            $motivos[] = "Motivo 2 - Timestamps com .000" . basename($arquivo);
                         }
                 
                         // Motivo 3 - Modify diferente de Change no arquivo
                         if ($dataModify !== $dataChange) {
-                            $motivos[] = "Motivo 3 - " . basename($arquivo);
+                            $motivos[] = "Motivo 3 - Modify diferente de Change no arquivo" . basename($arquivo);
                         }
                 
                         // Motivo 4 - Nome do arquivo não bate com Modify
@@ -1381,7 +1403,7 @@ escolheropcoes:
                                     $modifyFormatado = date('Y-m-d H:i:s', $modifyTimestamp);
 
                                     if ($nomeFormatado !== $modifyFormatado) {
-                                        $motivos[] = "Motivo 4 - " . basename($arquivo);
+                                        $motivos[] = "Motivo 4 - Nome do arquivo não bate com Modify" . basename($arquivo);
                                     }
                                 } else {
                                     $motivos[] = "Motivo 4 - erro ao converter timestamps (Modify: $dataModifyLimpo, Nome: {$match[1]})";
@@ -1396,12 +1418,13 @@ escolheropcoes:
                             $jsonAccess = trim(preg_replace('/ -\d{4}$/', '', $matchJsonAccess[1]));
                             $dataBinTimes = [$dataAccess, $dataModify, $dataChange];
                             if (!in_array($jsonAccess, $dataBinTimes)) {
-                                $motivos[] = "Motivo 8 - " . basename($jsonPath);
+                                $motivos[] = "Motivo 8 - Access do .json diferente dos tempos do .bin" . basename($jsonPath);
                             }
                         }
                         if (!$jsonStat) {
                             $motivos[] = "Motivo 8 - Arquivo JSON ausente: " . basename($jsonPath);
                         }
+
                     }
                 }
                 
@@ -1420,26 +1443,48 @@ escolheropcoes:
                 
                         // Motivo 7 - Pasta modificada após o último replay
                         if ($ultimoModifyTime && $pastaModifyTime > $ultimoModifyTime) {
-                            $motivos[] = "Motivo 7 - ";
+                            $motivos[] = "Motivo 7 - Pasta modificada após o último replay";
                         }
                         if ($ultimoChangeTime && $pastaChangeTime > $ultimoChangeTime) {
-                            $motivos[] = "Motivo 7 - ";
+                            $motivos[] = "Motivo 7 - Pasta modificada após o último replay";
                         }
                 
                         // Motivo 5 - Access, Modify e Change idênticos
                         if ($timestamps['Access'] === $timestamps['Modify'] && $timestamps['Modify'] === $timestamps['Change']) {
-                            $motivos[] = "Motivo 5 - ";
+                            $motivos[] = "Motivo 5 - Access, Modify e Change idênticos";
                         }
                 
                         // Motivo 6 - Milissegundos .000 na pasta
                         if (preg_match('/\.0+$/', $timestamps['Modify']) || preg_match('/\.0+$/', $timestamps['Change'])) {
-                            $motivos[] = "Motivo 6 -";
+                            $motivos[] = "Motivo 6 - Milissegundos .000 na pasta";
                         }
                 
                         // Motivo 11 - Modify diferente de Change na pasta
                         if ($timestamps['Modify'] !== $timestamps['Change']) {
-                            $motivos[] = "Motivo 11 - ";
+                            $motivos[] = "Motivo 11 - Modify diferente de Change na pasta";
                         }
+
+                        // Motivo 12 - Change da pasta MReplays diferente dos Access dos arquivos
+                        if ($arquivoMaisRecente && isset($timestamps['Change'])) {
+                            $binAccessCompleto = $matchAccess[1] ?? '';
+                            $jsonAccessCompleto = '';
+
+                            $jsonPath = preg_replace('/\.bin$/', '.json', $arquivoMaisRecente);
+                            $jsonStatCompleto = shell_exec('adb shell "stat ' . escapeshellarg($jsonPath) . ' 2>/dev/null"');
+
+                            if ($jsonStatCompleto && preg_match('/Access: (.*?)\n/', $jsonStatCompleto, $matchJsonAccessCompleto)) {
+                                $jsonAccessCompleto = trim($matchJsonAccessCompleto[1]);
+                            }
+
+                            $changeMReplays = trim($timestamps['Change']);
+
+                            if ($binAccessCompleto !== $changeMReplays && $jsonAccessCompleto !== $changeMReplays) {
+                                $motivos[] = "Motivo 12 - Change da pasta MReplays não bate com Access do .bin ou .json";
+                            }
+                        }
+
+
+
                 
                         // Motivo 9 - Nome não bate com Modify da pasta + milissegundos suspeitos
                         if ($arquivoMaisRecente && isset($timestamps['Access'])) {
@@ -1452,7 +1497,7 @@ escolheropcoes:
                                     $todosZeros = preg_match('/^0+$/', $milisegundosMatch[0]);
                                     $condicaoValida = ($doisPrimeiros <= 90 && preg_match('/^0+$/', $restante));
                                     if (($todosZeros || $condicaoValida) && $nomeNormalizado !== $modifyPastaNormalizado) {
-                                        $motivos[] = "Motivo 9 - " . basename($arquivoMaisRecente);
+                                        $motivos[] = "Motivo 9 - Nome não bate com Modify da pasta + milissegundos suspeitos" . basename($arquivoMaisRecente);
                                     }
                                 }
                             }
