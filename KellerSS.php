@@ -487,7 +487,7 @@ escolheropcoes:
                             $jsonAccess = isset($matchesJson[1]) ? end($matchesJson[1]) : '';
                         
                             if ($binAccess !== $changeMReplays && $jsonAccess !== $changeMReplays) {
-                                $motivos[] = "Motivo 12 - Change da pasta MReplays não bate com Access do .bin ou .json (NAO APLIQUE W.O)\n" .
+                                $motivos[] = "Motivo 12 - Change da pasta MReplays não bate com Access do .bin ou .json\n" .
                                             "Change MReplays: $changeMReplays\n" .
                                             "Access .bin:     $binAccess\n" .
                                             "Access .json:    $jsonAccess";
@@ -1494,7 +1494,7 @@ escolheropcoes:
                             $jsonAccess = isset($matchesJson[1]) ? end($matchesJson[1]) : '';
                         
                             if ($binAccess !== $changeMReplays && $jsonAccess !== $changeMReplays) {
-                                $motivos[] = "Motivo 12 - Change da pasta MReplays não bate com Access do .bin ou .json (NAO APLIQUE W.O)\n" .
+                                $motivos[] = "Motivo 12 - Change da pasta MReplays não bate com Access do .bin ou .json\n" .
                                             "Change MReplays: $changeMReplays\n" .
                                             "Access .bin:     $binAccess\n" .
                                             "Access .json:    $jsonAccess";
