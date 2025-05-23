@@ -473,37 +473,19 @@ escolheropcoes:
                             $arquivoMaisRecente &&
                             isset($timestamps['Change'])
                         ) {
-                            // Change da pasta MReplays
                             $changeMReplays = trim($timestamps['Change']);
-
-                            // Função auxiliar para extrair o timestamp de Access
-                            function extractAccessTimestamp(string $statOutput): string {
-                                // captura todos os Access: ...
-                                if (preg_match_all(
-                                    '/Access: (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+ -\d{4})/',
-                                    $statOutput,
-                                    $matches
-                                )) {
-                                    // retorna o último (deve ser o timestamp, não as permissões)
-                                    return end($matches[1]);
-                                }
-                                return '';
-                            }
-
+                        
                             // 1) Stat do .bin
-                            $statBin = shell_exec(
-                                'adb shell "stat ' . escapeshellarg($arquivoMaisRecente) . ' 2>/dev/null"'
-                            );
-                            $binAccess = extractAccessTimestamp($statBin);
-
-                            // 2) Stat do .json correspondente
+                            $statBin = shell_exec('adb shell "stat ' . escapeshellarg($arquivoMaisRecente) . ' 2>/dev/null"');
+                            preg_match_all('/Access: (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+)(?: [-+]\d{4})?/', $statBin, $matchesBin);
+                            $binAccess = isset($matchesBin[1]) ? end($matchesBin[1]) : '';
+                        
+                            // 2) Stat do .json
                             $jsonPath = preg_replace('/\.bin$/', '.json', $arquivoMaisRecente);
-                            $statJson = shell_exec(
-                                'adb shell "stat ' . escapeshellarg($jsonPath) . ' 2>/dev/null"'
-                            );
-                            $jsonAccess = extractAccessTimestamp($statJson);
-
-                            // Se NENHUM dos dois Access bater com o Change da pasta, adiciona o motivo com debug
+                            $statJson = shell_exec('adb shell "stat ' . escapeshellarg($jsonPath) . ' 2>/dev/null"');
+                            preg_match_all('/Access: (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+)(?: [-+]\d{4})?/', $statJson, $matchesJson);
+                            $jsonAccess = isset($matchesJson[1]) ? end($matchesJson[1]) : '';
+                        
                             if ($binAccess !== $changeMReplays && $jsonAccess !== $changeMReplays) {
                                 $motivos[] = "Motivo 12 - Change da pasta MReplays não bate com Access do .bin ou .json (NAO APLIQUE W.O)\n" .
                                             "Change MReplays: $changeMReplays\n" .
@@ -511,6 +493,7 @@ escolheropcoes:
                                             "Access .json:    $jsonAccess";
                             }
                         }
+                        
 
 
 
@@ -1497,37 +1480,19 @@ escolheropcoes:
                             $arquivoMaisRecente &&
                             isset($timestamps['Change'])
                         ) {
-                            // Change da pasta MReplays
                             $changeMReplays = trim($timestamps['Change']);
-
-                            // Função auxiliar para extrair o timestamp de Access
-                            function extractAccessTimestamp(string $statOutput): string {
-                                // captura todos os Access: ...
-                                if (preg_match_all(
-                                    '/Access: (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+ -\d{4})/',
-                                    $statOutput,
-                                    $matches
-                                )) {
-                                    // retorna o último (deve ser o timestamp, não as permissões)
-                                    return end($matches[1]);
-                                }
-                                return '';
-                            }
-
+                        
                             // 1) Stat do .bin
-                            $statBin = shell_exec(
-                                'adb shell "stat ' . escapeshellarg($arquivoMaisRecente) . ' 2>/dev/null"'
-                            );
-                            $binAccess = extractAccessTimestamp($statBin);
-
-                            // 2) Stat do .json correspondente
+                            $statBin = shell_exec('adb shell "stat ' . escapeshellarg($arquivoMaisRecente) . ' 2>/dev/null"');
+                            preg_match_all('/Access: (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+)(?: [-+]\d{4})?/', $statBin, $matchesBin);
+                            $binAccess = isset($matchesBin[1]) ? end($matchesBin[1]) : '';
+                        
+                            // 2) Stat do .json
                             $jsonPath = preg_replace('/\.bin$/', '.json', $arquivoMaisRecente);
-                            $statJson = shell_exec(
-                                'adb shell "stat ' . escapeshellarg($jsonPath) . ' 2>/dev/null"'
-                            );
-                            $jsonAccess = extractAccessTimestamp($statJson);
-
-                            // Se NENHUM dos dois Access bater com o Change da pasta, adiciona o motivo com debug
+                            $statJson = shell_exec('adb shell "stat ' . escapeshellarg($jsonPath) . ' 2>/dev/null"');
+                            preg_match_all('/Access: (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+)(?: [-+]\d{4})?/', $statJson, $matchesJson);
+                            $jsonAccess = isset($matchesJson[1]) ? end($matchesJson[1]) : '';
+                        
                             if ($binAccess !== $changeMReplays && $jsonAccess !== $changeMReplays) {
                                 $motivos[] = "Motivo 12 - Change da pasta MReplays não bate com Access do .bin ou .json (NAO APLIQUE W.O)\n" .
                                             "Change MReplays: $changeMReplays\n" .
@@ -1535,6 +1500,8 @@ escolheropcoes:
                                             "Access .json:    $jsonAccess";
                             }
                         }
+                        
+                        
 
 
 
