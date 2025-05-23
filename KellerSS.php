@@ -761,8 +761,8 @@ escolheropcoes:
                                 
 
                                 if ($modifyDate !== $changeDate) {
-                                    $dateTimeChange = DateTime::createFromFormat('Y-m-d', $changeDate);
-                                    $dataChangeFormatadaLegivel = $dateTimeChange ? $dateTimeChange->format('d-m-Y') : $changeDate;
+                                    $dateTimeChange = DateTime::createFromFormat('Y-m-d H:i:s', $changeDate);
+                                    $dataChangeFormatadaLegivel = $dateTimeChange ? $dateTimeChange->format('d-m-Y H:i:s') : $changeDate;
 
                                     echo $bold . $vermelho . "[!] Arquivo shader modificado: $nomeArquivo\n";
                                     echo $bold . $amarelo . "[i] Horário da modificação: $dataChangeFormatadaLegivel\n";
@@ -1783,8 +1783,9 @@ escolheropcoes:
                                 }
 
                                 if ($modifyDate !== $changeDate) {
-                                    $dateTimeChange = DateTime::createFromFormat('Y-m-d', $changeDate);
-                                    $dataChangeFormatadaLegivel = $dateTimeChange ? $dateTimeChange->format('d-m-Y') : $changeDate;
+                                    $dateTimeChange = DateTime::createFromFormat('Y-m-d H:i:s', $changeDate);
+                                    $dataChangeFormatadaLegivel = $dateTimeChange ? $dateTimeChange->format('d-m-Y H:i:s') : $changeDate;
+
 
                                     echo $bold . $vermelho . "[!] Arquivo shader modificado: $nomeArquivo\n";
                                     echo $bold . $amarelo . "[i] Horário da modificação: $dataChangeFormatadaLegivel\n";
