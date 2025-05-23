@@ -469,20 +469,30 @@ escolheropcoes:
                         }
 
                         // Motivo 12 - Change da pasta MReplays diferente dos Access dos arquivos
-                        if ($arquivoMaisRecente && isset($timestamps['Change'])) {
+                        // Motivo 12 - Change da pasta MReplays diferente dos Access dos arquivos
+                        if (
+                            $arquivoMaisRecente &&
+                            isset($timestamps['Change'])
+                        ) {
                             $binAccessCompleto = $matchAccess[1] ?? '';
                             $jsonAccessCompleto = '';
-
+                        
                             $jsonPath = preg_replace('/\.bin$/', '.json', $arquivoMaisRecente);
                             $jsonStatCompleto = shell_exec('adb shell "stat ' . escapeshellarg($jsonPath) . ' 2>/dev/null"');
-
-                            if ($jsonStatCompleto && preg_match('/Access: (.*?)\n/', $jsonStatCompleto, $matchJsonAccessCompleto)) {
+                        
+                            if (
+                                $jsonStatCompleto &&
+                                preg_match('/Access: (.*?)\n/', $jsonStatCompleto, $matchJsonAccessCompleto)
+                            ) {
                                 $jsonAccessCompleto = trim($matchJsonAccessCompleto[1]);
                             }
-
+                        
                             $changeMReplays = trim($timestamps['Change']);
-
-                            if ($binAccessCompleto !== $changeMReplays && $jsonAccessCompleto !== $changeMReplays) {
+                        
+                            if (
+                                $binAccessCompleto !== $changeMReplays &&
+                                $jsonAccessCompleto !== $changeMReplays
+                            ) {
                                 $motivos[] = "Motivo 12 - Change da pasta MReplays não bate com Access do .bin ou .json";
                             }
                         }
@@ -1465,20 +1475,29 @@ escolheropcoes:
                         }
 
                         // Motivo 12 - Change da pasta MReplays diferente dos Access dos arquivos
-                        if ($arquivoMaisRecente && isset($timestamps['Change'])) {
+                        if (
+                            $arquivoMaisRecente &&
+                            isset($timestamps['Change'])
+                        ) {
                             $binAccessCompleto = $matchAccess[1] ?? '';
                             $jsonAccessCompleto = '';
-
+                        
                             $jsonPath = preg_replace('/\.bin$/', '.json', $arquivoMaisRecente);
                             $jsonStatCompleto = shell_exec('adb shell "stat ' . escapeshellarg($jsonPath) . ' 2>/dev/null"');
-
-                            if ($jsonStatCompleto && preg_match('/Access: (.*?)\n/', $jsonStatCompleto, $matchJsonAccessCompleto)) {
+                        
+                            if (
+                                $jsonStatCompleto &&
+                                preg_match('/Access: (.*?)\n/', $jsonStatCompleto, $matchJsonAccessCompleto)
+                            ) {
                                 $jsonAccessCompleto = trim($matchJsonAccessCompleto[1]);
                             }
-
+                        
                             $changeMReplays = trim($timestamps['Change']);
-
-                            if ($binAccessCompleto !== $changeMReplays && $jsonAccessCompleto !== $changeMReplays) {
+                        
+                            if (
+                                $binAccessCompleto !== $changeMReplays &&
+                                $jsonAccessCompleto !== $changeMReplays
+                            ) {
                                 $motivos[] = "Motivo 12 - Change da pasta MReplays não bate com Access do .bin ou .json";
                             }
                         }
