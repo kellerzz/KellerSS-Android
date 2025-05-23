@@ -503,11 +503,15 @@ escolheropcoes:
                             );
                             $jsonAccess = extractAccessTimestamp($statJson);
 
-                            // Se NENHUM dos dois Access bater com o Change da pasta, adiciona o motivo
+                            // Se NENHUM dos dois Access bater com o Change da pasta, adiciona o motivo com debug
                             if ($binAccess !== $changeMReplays && $jsonAccess !== $changeMReplays) {
-                                $motivos[] = "Motivo 12 - Change da pasta MReplays não bate com Access do .bin ou .json";
+                                $motivos[] = "Motivo 12 - Change da pasta MReplays não bate com Access do .bin ou .json (NAO APLIQUE W.O)\n" .
+                                            "Change MReplays: $changeMReplays\n" .
+                                            "Access .bin:     $binAccess\n" .
+                                            "Access .json:    $jsonAccess";
                             }
                         }
+
 
 
 
@@ -1523,9 +1527,12 @@ escolheropcoes:
                             );
                             $jsonAccess = extractAccessTimestamp($statJson);
 
-                            // Se NENHUM dos dois Access bater com o Change da pasta, adiciona o motivo
+                            // Se NENHUM dos dois Access bater com o Change da pasta, adiciona o motivo com debug
                             if ($binAccess !== $changeMReplays && $jsonAccess !== $changeMReplays) {
-                                $motivos[] = "Motivo 12 - Change da pasta MReplays não bate com Access do .bin ou .json";
+                                $motivos[] = "Motivo 12 - Change da pasta MReplays não bate com Access do .bin ou .json (NAO APLIQUE W.O)\n" .
+                                            "Change MReplays: $changeMReplays\n" .
+                                            "Access .bin:     $binAccess\n" .
+                                            "Access .json:    $jsonAccess";
                             }
                         }
 
