@@ -693,28 +693,28 @@ escolheropcoes:
 
                 $comandoFind = 'adb shell find ' . escapeshellarg($pastaShaders) . ' -name "shaders*" -type f 2>&1';
                 $arquivosShaders = shell_exec($comandoFind);
-
+                
                 if (!empty($arquivosShaders)) {
                     $arquivosShaders = explode("\n", trim($arquivosShaders));
-
+                
                     foreach ($arquivosShaders as $arquivo) {
                         if (empty($arquivo)) continue;
-
+                
                         $comandoStat = 'adb shell stat ' . escapeshellarg($arquivo) . ' 2>&1';
                         $resultadoStat = shell_exec($comandoStat);
-
+                
                         if (strpos($resultadoStat, 'File:') !== false) {
-                            preg_match('/Access: (\d{4}-\d{2}-\d{2}) \d{2}:\d{2}:\d{2}/', $resultadoStat, $matchAccess);
-                            preg_match('/Modify: (\d{4}-\d{2}-\d{2}) \d{2}:\d{2}:\d{2}/', $resultadoStat, $matchModify);
-                            preg_match('/Change: (\d{4}-\d{2}-\d{2}) \d{2}:\d{2}:\d{2}/', $resultadoStat, $matchChange);
-
+                            preg_match('/Access: (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/', $resultadoStat, $matchAccess);
+                            preg_match('/Modify: (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/', $resultadoStat, $matchModify);
+                            preg_match('/Change: (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/', $resultadoStat, $matchChange);
+                
                             if ($matchAccess && $matchModify && $matchChange) {
                                 $accessDate = $matchAccess[1];
                                 $modifyDate = $matchModify[1];
                                 $changeDate = $matchChange[1];
-
+                
                                 $nomeArquivo = basename($arquivo);
-
+                
                                 if ($accessDate === $modifyDate && $modifyDate === $changeDate) {
                                     if ($firstInstallDate) {
                                         $timestampArquivo = strtotime($accessDate);
@@ -728,25 +728,23 @@ escolheropcoes:
                                 
                                     echo $bold . $laranja . "[!] Possível Bypass Holograma detectado (ACCESS, MODIFY, CHANGE iguais)\n";
                                     echo $bold . $laranja . "[!] Arquivo: $nomeArquivo\n";
-
+                
                                     $dateTimeAccess = DateTime::createFromFormat('Y-m-d H:i:s', $accessDate);
                                     $dataAccessFormatada = $dateTimeAccess ? $dateTimeAccess->format('d-m-Y H:i:s') : $accessDate;
-
+                
                                     $dateTimeInstall = DateTime::createFromFormat('Y-m-d H:i:s', $firstInstallDate);
                                     $dataInstallFormatada = $dateTimeInstall ? $dateTimeInstall->format('d-m-Y H:i:s') : $firstInstallDate;
-
+                
                                     echo $bold . $laranja . "[!] Data da modificação (Access/Modify/Change): $dataAccessFormatada\n";
                                     echo $bold . $laranja . "[!] Data de instalação do FF: $dataInstallFormatada\n";
-
                                     echo $bold . $laranja . "[!] Se for após a partida, aplique o W.O!\n\n";
                                     continue;
                                 }
-                                
-
+                
                                 if ($modifyDate !== $changeDate) {
                                     $dateTimeChange = DateTime::createFromFormat('Y-m-d H:i:s', $changeDate);
                                     $dataChangeFormatadaLegivel = $dateTimeChange ? $dateTimeChange->format('d-m-Y H:i:s') : $changeDate;
-
+                
                                     echo $bold . $vermelho . "[!] Arquivo shader modificado: $nomeArquivo\n";
                                     echo $bold . $amarelo . "[i] Horário da modificação: $dataChangeFormatadaLegivel\n";
                                     echo $bold . $vermelho . "[!] Verifique se a data é após a partida, se sim aplique o W.O!\n\n";
@@ -1699,29 +1697,28 @@ escolheropcoes:
 
                 $comandoFind = 'adb shell find ' . escapeshellarg($pastaShaders) . ' -name "shaders*" -type f 2>&1';
                 $arquivosShaders = shell_exec($comandoFind);
-
+                
                 if (!empty($arquivosShaders)) {
                     $arquivosShaders = explode("\n", trim($arquivosShaders));
-
+                
                     foreach ($arquivosShaders as $arquivo) {
                         if (empty($arquivo)) continue;
-
+                
                         $comandoStat = 'adb shell stat ' . escapeshellarg($arquivo) . ' 2>&1';
                         $resultadoStat = shell_exec($comandoStat);
-
+                
                         if (strpos($resultadoStat, 'File:') !== false) {
                             preg_match('/Access: (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/', $resultadoStat, $matchAccess);
                             preg_match('/Modify: (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/', $resultadoStat, $matchModify);
                             preg_match('/Change: (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/', $resultadoStat, $matchChange);
-
-
+                
                             if ($matchAccess && $matchModify && $matchChange) {
                                 $accessDate = $matchAccess[1];
                                 $modifyDate = $matchModify[1];
                                 $changeDate = $matchChange[1];
-
+                
                                 $nomeArquivo = basename($arquivo);
-
+                
                                 if ($accessDate === $modifyDate && $modifyDate === $changeDate) {
                                     if ($firstInstallDate) {
                                         $timestampArquivo = strtotime($accessDate);
@@ -1735,25 +1732,23 @@ escolheropcoes:
                                 
                                     echo $bold . $laranja . "[!] Possível Bypass Holograma detectado (ACCESS, MODIFY, CHANGE iguais)\n";
                                     echo $bold . $laranja . "[!] Arquivo: $nomeArquivo\n";
-
+                
                                     $dateTimeAccess = DateTime::createFromFormat('Y-m-d H:i:s', $accessDate);
                                     $dataAccessFormatada = $dateTimeAccess ? $dateTimeAccess->format('d-m-Y H:i:s') : $accessDate;
-
+                
                                     $dateTimeInstall = DateTime::createFromFormat('Y-m-d H:i:s', $firstInstallDate);
                                     $dataInstallFormatada = $dateTimeInstall ? $dateTimeInstall->format('d-m-Y H:i:s') : $firstInstallDate;
-
+                
                                     echo $bold . $laranja . "[!] Data da modificação (Access/Modify/Change): $dataAccessFormatada\n";
                                     echo $bold . $laranja . "[!] Data de instalação do FF: $dataInstallFormatada\n";
-
                                     echo $bold . $laranja . "[!] Se for após a partida, aplique o W.O!\n\n";
                                     continue;
                                 }
-
+                
                                 if ($modifyDate !== $changeDate) {
                                     $dateTimeChange = DateTime::createFromFormat('Y-m-d H:i:s', $changeDate);
                                     $dataChangeFormatadaLegivel = $dateTimeChange ? $dateTimeChange->format('d-m-Y H:i:s') : $changeDate;
-
-
+                
                                     echo $bold . $vermelho . "[!] Arquivo shader modificado: $nomeArquivo\n";
                                     echo $bold . $amarelo . "[i] Horário da modificação: $dataChangeFormatadaLegivel\n";
                                     echo $bold . $vermelho . "[!] Verifique se a data é após a partida, se sim aplique o W.O!\n\n";
