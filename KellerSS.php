@@ -386,34 +386,37 @@ escolheropcoes:
                         // Motivo 4 - Nome do arquivo não bate com Modify
                         if ($indice === 0) {
                             $arquivoMaisRecente = $arquivo;
-
+                        
                             if (preg_match('/(\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2})/', basename($arquivo), $match)) {
-
                                 $nomeNormalizado = preg_replace(
                                     '/^(\d{4})-(\d{2})-(\d{2})-(\d{2})-(\d{2})-(\d{2})$/',
                                     '$1-$2-$3 $4:$5:$6',
                                     $match[1]
                                 );
                                 $nomeTimestamp = strtotime($nomeNormalizado);
-
-                                $dataModifyLimpo = preg_replace('/\.\d+$/', '', $dataModify);  
-                                $modifyTimestamp = strtotime($dataModifyLimpo);
-
-                                if (
-                                    $nomeTimestamp !== false &&
-                                    $modifyTimestamp !== false
-                                ) {
-                                    $nomeFormatado = date('Y-m-d H:i:s', $nomeTimestamp);
-                                    $modifyFormatado = date('Y-m-d H:i:s', $modifyTimestamp);
-
-                                    if ($nomeFormatado !== $modifyFormatado) {
-                                        $motivos[] = "Motivo 4 - Nome do arquivo não bate com Modify" . basename($arquivo);
+                        
+                                preg_match('/(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\.(\d+)/', $dataModify, $modifyParts);
+                                $dataModifyBase = $modifyParts[1] ?? '';
+                                $nanosModify = (int)($modifyParts[2] ?? 0);
+                                $modifyTimestamp = strtotime($dataModifyBase);
+                        
+                                if ($nomeTimestamp !== false && $modifyTimestamp !== false) {
+  
+                                    $nomeNsTotal = $nomeTimestamp * 1_000_000_000;
+                                    $modifyNsTotal = ($modifyTimestamp * 1_000_000_000) + $nanosModify;
+                        
+                                    $diffNs = abs($modifyNsTotal - $nomeNsTotal);
+                        
+                                    if ($diffNs > 1_000_000_000) { 
+                                        $motivos[] = "Motivo 4 - Nome do arquivo não bate com Modify: " . basename($arquivo);
                                     }
                                 } else {
-                                    $motivos[] = "Motivo 4 - erro ao converter timestamps (Modify: $dataModifyLimpo, Nome: {$match[1]})";
+                                    $motivos[] = "Motivo 4 - erro ao converter timestamps (Modify: $dataModify, Nome: {$match[1]})";
                                 }
                             }
                         }
+                        
+                        
                 
                         // Motivo 8 - Access do .json diferente dos tempos do .bin
                         $jsonPath = preg_replace('/\.bin$/', '.json', $arquivo);
@@ -1391,31 +1394,32 @@ escolheropcoes:
                         // Motivo 4 - Nome do arquivo não bate com Modify
                         if ($indice === 0) {
                             $arquivoMaisRecente = $arquivo;
-
+                        
                             if (preg_match('/(\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2})/', basename($arquivo), $match)) {
-
                                 $nomeNormalizado = preg_replace(
                                     '/^(\d{4})-(\d{2})-(\d{2})-(\d{2})-(\d{2})-(\d{2})$/',
                                     '$1-$2-$3 $4:$5:$6',
                                     $match[1]
                                 );
                                 $nomeTimestamp = strtotime($nomeNormalizado);
-
-                                $dataModifyLimpo = preg_replace('/\.\d+$/', '', $dataModify);  
-                                $modifyTimestamp = strtotime($dataModifyLimpo);
-
-                                if (
-                                    $nomeTimestamp !== false &&
-                                    $modifyTimestamp !== false
-                                ) {
-                                    $nomeFormatado = date('Y-m-d H:i:s', $nomeTimestamp);
-                                    $modifyFormatado = date('Y-m-d H:i:s', $modifyTimestamp);
-
-                                    if ($nomeFormatado !== $modifyFormatado) {
-                                        $motivos[] = "Motivo 4 - Nome do arquivo não bate com Modify" . basename($arquivo);
+                        
+                                preg_match('/(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\.(\d+)/', $dataModify, $modifyParts);
+                                $dataModifyBase = $modifyParts[1] ?? '';
+                                $nanosModify = (int)($modifyParts[2] ?? 0);
+                                $modifyTimestamp = strtotime($dataModifyBase);
+                        
+                                if ($nomeTimestamp !== false && $modifyTimestamp !== false) {
+  
+                                    $nomeNsTotal = $nomeTimestamp * 1_000_000_000;
+                                    $modifyNsTotal = ($modifyTimestamp * 1_000_000_000) + $nanosModify;
+                        
+                                    $diffNs = abs($modifyNsTotal - $nomeNsTotal);
+                        
+                                    if ($diffNs > 1_000_000_000) { 
+                                        $motivos[] = "Motivo 4 - Nome do arquivo não bate com Modify: " . basename($arquivo);
                                     }
                                 } else {
-                                    $motivos[] = "Motivo 4 - erro ao converter timestamps (Modify: $dataModifyLimpo, Nome: {$match[1]})";
+                                    $motivos[] = "Motivo 4 - erro ao converter timestamps (Modify: $dataModify, Nome: {$match[1]})";
                                 }
                             }
                         }
