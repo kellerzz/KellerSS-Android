@@ -1410,20 +1410,32 @@ escolheropcoes:
                                 $modifyTimestamp = strtotime($dataModifyBase);
                         
                                 if ($nomeTimestamp !== false && $modifyTimestamp !== false) {
-  
                                     $nomeNsTotal = $nomeTimestamp * 1_000_000_000;
                                     $modifyNsTotal = ($modifyTimestamp * 1_000_000_000) + $nanosModify;
                         
                                     $diffNs = abs($modifyNsTotal - $nomeNsTotal);
                         
-                                    if ($diffNs > 1_000_000_000) { 
+                                    if ($diffNs > 1_000_000_000) {
                                         $motivos[] = "Motivo 4 - Nome do arquivo não bate com Modify: " . basename($arquivo);
                                     }
                                 } else {
                                     $motivos[] = "Motivo 4 - erro ao converter timestamps (Modify: $dataModify, Nome: {$match[1]})";
                                 }
+                        
+                               
+                                if (isset($modifyParts[2])) {
+                                    $nanoStr = str_pad($modifyParts[2], 9, '0'); 
+                                    if (strlen($nanoStr) >= 6) {
+                                        $aposTerceiro = substr($nanoStr, 3); 
+                                        if (preg_match('/^[09]+$/', $aposTerceiro)) {
+                                            $motivos[] = "Motivo 13 - Nanosegundos suspeitos após 3 dígitos (apenas 0 ou 9): " . basename($arquivo);
+                                        }
+                                    }
+                                }
                             }
                         }
+                        
+                        
                 
                         // Motivo 8 - Access do .json diferente dos tempos do .bin
                         $jsonPath = preg_replace('/\.bin$/', '.json', $arquivo);
