@@ -278,6 +278,28 @@ escolheropcoes:
                 echo $bold . $vermelho . "[!] Nenhum log de alteração de horário encontrado.\n\n";
             }
 
+            echo $bold . $azul . "\n[+] Checando SH Bypass...\n";
+            
+            // Verificar se existe a pasta /data/adb
+            $adbPath = trim(shell_exec('adb shell "[ -d /data/adb ] && echo "exists" || echo "not_found""'));
+            
+            if ($adbPath === "exists") {
+                echo $bold . $vermelho . "[!] Pasta com módulos script detectada, aplique o W.O!\n";
+            } else {
+                echo $bold . $fverde . "[i] Pasta /data/adb não encontrada.\n";
+                
+                // Pegar stat da pasta data e retornar o horário da change/modify mais recente
+                $statData = trim(shell_exec('adb shell "stat /data 2>/dev/null | grep -E \"(Access|Modify|Change)\" | head -3"'));
+                
+                if (!empty($statData)) {
+                    echo $bold . $amarelo . "[!] Último acesso/modificação da pasta data:\n";
+                    echo $amarelo . $statData . "\n";
+                    echo $bold . $branco . "[+] Se for após a partida, aplique o W.O!\n";
+                } else {
+                    echo $bold . $vermelho . "[!] Não foi possível obter informações de stat da pasta /data.\n";
+                }
+            }
+            
             echo $bold . $azul . "\n[+] Checando se modificou data e hora...\n";
             $autoTime = trim(shell_exec('adb shell settings get global auto_time'));
             $autoTimeZone = trim(shell_exec('adb shell settings get global auto_time_zone'));
@@ -1286,6 +1308,28 @@ escolheropcoes:
                 echo $bold . $vermelho . "[!] Nenhum log de alteração de horário encontrado.\n\n";
             }
 
+            echo $bold . $azul . "\n[+] Checando SH Bypass...\n";
+            
+            // Verificar se existe a pasta /data/adb
+            $adbPath = trim(shell_exec('adb shell "[ -d /data/adb ] && echo "exists" || echo "not_found""'));
+            
+            if ($adbPath === "exists") {
+                echo $bold . $vermelho . "[!] Pasta com módulos script detectada, aplique o W.O!\n";
+            } else {
+                echo $bold . $fverde . "[i] Pasta /data/adb não encontrada.\n";
+                
+                // Pegar stat da pasta data e retornar o horário da change/modify mais recente
+                $statData = trim(shell_exec('adb shell "stat /data 2>/dev/null | grep -E \"(Access|Modify|Change)\" | head -3"'));
+                
+                if (!empty($statData)) {
+                    echo $bold . $amarelo . "[!] Último acesso/modificação da pasta data:\n";
+                    echo $amarelo . $statData . "\n";
+                    echo $bold . $branco . "[+] Se for após a partida, aplique o W.O!\n";
+                } else {
+                    echo $bold . $vermelho . "[!] Não foi possível obter informações de stat da pasta /data.\n";
+                }
+            }
+
             echo $bold . $azul . "\n[+] Checando se modificou data e hora...\n";
             $autoTime = trim(shell_exec('adb shell settings get global auto_time'));
             $autoTimeZone = trim(shell_exec('adb shell settings get global auto_time_zone'));
@@ -2124,4 +2168,4 @@ escolheropcoes:
             die();
         }
       }
-?>      
+?>
