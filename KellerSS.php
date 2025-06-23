@@ -140,13 +140,19 @@ escolheropcoes:
                 }
 
 
-                $comandoSu = 'su 2>&1';
+                $comandoSu = 'timeout 3 su -c "echo root_ok" 2>&1';
                 $resultadoSu = shell_exec($comandoSu);
-
-                if (!empty($resultadoSu) && strpos($resultadoSu, 'No su program found') !== false) {
+                
+                if (!empty($resultadoSu) && 
+                    (strpos($resultadoSu, 'No su program found') !== false || 
+                     strpos($resultadoSu, 'command not found') !== false ||
+                     strpos($resultadoSu, 'not found') !== false)) {
                     echo $bold . $fverde . "[-] O dispositivo não tem root.\n\n";
-                } else {
+                } elseif (!empty($resultadoSu) && strpos($resultadoSu, 'root_ok') !== false) {
                     echo $bold . $vermelho . "[+] Root detectado no dispositivo Android.\n\n";
+                } else {
+                    // Timeout ou sem resposta - provavelmente tem root
+                    echo $bold . $vermelho . "[+] Root detectado no dispositivo Android (timeout/sem resposta).\n\n";
                 }
                 
 
@@ -1116,13 +1122,19 @@ escolheropcoes:
                     echo $bold . $vermelho . "[!] Não foi possível obter a versão do Android.\n";
                 }
 
-                $comandoSu = 'su 2>&1';
+                $comandoSu = 'timeout 3 su -c "echo root_ok" 2>&1';
                 $resultadoSu = shell_exec($comandoSu);
-
-                if (!empty($resultadoSu) && strpos($resultadoSu, 'No su program found') !== false) {
+                
+                if (!empty($resultadoSu) && 
+                    (strpos($resultadoSu, 'No su program found') !== false || 
+                     strpos($resultadoSu, 'command not found') !== false ||
+                     strpos($resultadoSu, 'not found') !== false)) {
                     echo $bold . $fverde . "[-] O dispositivo não tem root.\n\n";
-                } else {
+                } elseif (!empty($resultadoSu) && strpos($resultadoSu, 'root_ok') !== false) {
                     echo $bold . $vermelho . "[+] Root detectado no dispositivo Android.\n\n";
+                } else {
+                    // Timeout ou sem resposta - provavelmente tem root
+                    echo $bold . $vermelho . "[+] Root detectado no dispositivo Android (timeout/sem resposta).\n\n";
                 }
                 
 
