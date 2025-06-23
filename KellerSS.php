@@ -599,9 +599,8 @@ escolheropcoes:
                 echo $bold . $azul . "[+] Checando bypass de Wallhack/Holograma...\n";
 
 
-                
-                $comandoFindLibmain = 'adb shell "find /data/app -type f -name "libmain.so" 2>/dev/null"';
-                $comandoFindLibunity = 'adb shell "find /data/app -type f -name "libunity.so" 2>/dev/null"';
+                $comandoFindLibmain = 'adb shell "find /data/app/ -type f -path "*freefire*/lib/*/libmain.so" 2>/dev/null"';
+                $comandoFindLibunity = 'adb shell "find /data/app/ -type f -path "*freefire*/lib/*/libunity.so" 2>/dev/null"';
                 
                 $arquivosLibmain = shell_exec($comandoFindLibmain);
                 $arquivosLibunity = shell_exec($comandoFindLibunity);
@@ -617,18 +616,12 @@ escolheropcoes:
                         $caminhoLibmain = trim($caminhoLibmain);
                         if (empty($caminhoLibmain)) continue;
                         
-
-                        if (stripos($caminhoLibmain, 'freefire') === false) continue;
-                        
                         $pastaLibmain = dirname($caminhoLibmain);
-                        
-      
                         $caminhoLibunity = $pastaLibmain . '/libunity.so';
                         
                         foreach ($listaLibunity as $caminhoLibunityEncontrado) {
                             $caminhoLibunityEncontrado = trim($caminhoLibunityEncontrado);
                             if ($caminhoLibunityEncontrado === $caminhoLibunity) {
-
                                 $pastasValidas[] = [
                                     'pasta' => $pastaLibmain,
                                     'libmain' => $caminhoLibmain,
@@ -1744,8 +1737,8 @@ escolheropcoes:
                 echo $bold . $azul . "[+] Checando bypass de Wallhack/Holograma...\n";
 
 
-                $comandoFindLibmain = 'adb shell "find /data/app -type f -name "libmain.so" 2>/dev/null"';
-                $comandoFindLibunity = 'adb shell "find /data/app -type f -name "libunity.so" 2>/dev/null"';
+                $comandoFindLibmain = 'adb shell "find /data/app/ -type f -path "*freefire*/lib/*/libmain.so" 2>/dev/null"';
+                $comandoFindLibunity = 'adb shell "find /data/app/ -type f -path "*freefire*/lib/*/libunity.so" 2>/dev/null"';
                 
                 $arquivosLibmain = shell_exec($comandoFindLibmain);
                 $arquivosLibunity = shell_exec($comandoFindLibunity);
@@ -1761,18 +1754,12 @@ escolheropcoes:
                         $caminhoLibmain = trim($caminhoLibmain);
                         if (empty($caminhoLibmain)) continue;
                         
-
-                        if (stripos($caminhoLibmain, 'freefire') === false) continue;
-                        
                         $pastaLibmain = dirname($caminhoLibmain);
-                        
-      
                         $caminhoLibunity = $pastaLibmain . '/libunity.so';
                         
                         foreach ($listaLibunity as $caminhoLibunityEncontrado) {
                             $caminhoLibunityEncontrado = trim($caminhoLibunityEncontrado);
                             if ($caminhoLibunityEncontrado === $caminhoLibunity) {
-
                                 $pastasValidas[] = [
                                     'pasta' => $pastaLibmain,
                                     'libmain' => $caminhoLibmain,
