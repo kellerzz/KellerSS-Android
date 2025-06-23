@@ -140,19 +140,14 @@ escolheropcoes:
                 }
 
 
-                $comandoSu = 'timeout 3 su -c "echo root_ok" 2>&1';
+                $comandoSu = 'su 2>&1';
                 $resultadoSu = shell_exec($comandoSu);
-                
-                if (!empty($resultadoSu) && 
-                    (strpos($resultadoSu, 'No su program found') !== false || 
-                     strpos($resultadoSu, 'command not found') !== false ||
-                     strpos($resultadoSu, 'not found') !== false)) {
+
+                echo $bold . $azul . "[+] Checando se possui Root (se o programa travar, root detectado)...\n";
+                if (!empty($resultadoSu) && strpos($resultadoSu, 'No su program found') !== false) {
                     echo $bold . $fverde . "[-] O dispositivo não tem root.\n\n";
-                } elseif (!empty($resultadoSu) && strpos($resultadoSu, 'root_ok') !== false) {
-                    echo $bold . $vermelho . "[+] Root detectado no dispositivo Android.\n\n";
                 } else {
-                    // Timeout ou sem resposta - provavelmente tem root
-                    echo $bold . $vermelho . "[+] Root detectado no dispositivo Android (timeout/sem resposta).\n\n";
+                    echo $bold . $vermelho . "[+] Root detectado no dispositivo Android.\n\n";
                 }
                 
 
@@ -342,7 +337,7 @@ escolheropcoes:
                 
                         // Motivo 1 - Access posterior ao Modify
                         if ($accessTime > $modifyTime) {
-                            $motivos[] = "Motivo 1 - Access posterior ao Modify" . basename($arquivo);
+                            $motivos[] = "Motivo 1 - Access posterior ao Modify " . basename($arquivo);
                         }
                 
                         // Motivo 2 - Timestamps com .000
@@ -351,12 +346,12 @@ escolheropcoes:
                             preg_match('/\.0+$/', $dataModify) ||
                             preg_match('/\.0+$/', $dataChange)
                         ) {
-                            $motivos[] = "Motivo 2 - Timestamps com .000" . basename($arquivo);
+                            $motivos[] = "Motivo 2 - Timestamps com .000 " . basename($arquivo);
                         }
                 
                         // Motivo 3 - Modify diferente de Change no arquivo
                         if ($dataModify !== $dataChange) {
-                            $motivos[] = "Motivo 3 - Modify diferente de Change no arquivo" . basename($arquivo);
+                            $motivos[] = "Motivo 3 - Modify diferente de Change no arquivo " . basename($arquivo);
                         }
                 
                         // Motivo 4 - Nome do arquivo não bate com Modify
@@ -1122,19 +1117,14 @@ escolheropcoes:
                     echo $bold . $vermelho . "[!] Não foi possível obter a versão do Android.\n";
                 }
 
-                $comandoSu = 'timeout 3 su -c "echo root_ok" 2>&1';
+                $comandoSu = 'su 2>&1';
                 $resultadoSu = shell_exec($comandoSu);
-                
-                if (!empty($resultadoSu) && 
-                    (strpos($resultadoSu, 'No su program found') !== false || 
-                     strpos($resultadoSu, 'command not found') !== false ||
-                     strpos($resultadoSu, 'not found') !== false)) {
+
+                echo $bold . $azul . "[+] Checando se possui Root (se o programa travar, root detectado)...\n";
+                if (!empty($resultadoSu) && strpos($resultadoSu, 'No su program found') !== false) {
                     echo $bold . $fverde . "[-] O dispositivo não tem root.\n\n";
-                } elseif (!empty($resultadoSu) && strpos($resultadoSu, 'root_ok') !== false) {
-                    echo $bold . $vermelho . "[+] Root detectado no dispositivo Android.\n\n";
                 } else {
-                    // Timeout ou sem resposta - provavelmente tem root
-                    echo $bold . $vermelho . "[+] Root detectado no dispositivo Android (timeout/sem resposta).\n\n";
+                    echo $bold . $vermelho . "[+] Root detectado no dispositivo Android.\n\n";
                 }
                 
 
@@ -1324,7 +1314,7 @@ escolheropcoes:
                 
                         // Motivo 1 - Access posterior ao Modify
                         if ($accessTime > $modifyTime) {
-                            $motivos[] = "Motivo 1 - Access posterior ao Modify" . basename($arquivo);
+                            $motivos[] = "Motivo 1 - Access posterior ao Modify " . basename($arquivo);
                         }
                 
                         // Motivo 2 - Timestamps com .000
@@ -1333,12 +1323,12 @@ escolheropcoes:
                             preg_match('/\.0+$/', $dataModify) ||
                             preg_match('/\.0+$/', $dataChange)
                         ) {
-                            $motivos[] = "Motivo 2 - Timestamps com .000" . basename($arquivo);
+                            $motivos[] = "Motivo 2 - Timestamps com .000 " . basename($arquivo);
                         }
                 
                         // Motivo 3 - Modify diferente de Change no arquivo
                         if ($dataModify !== $dataChange) {
-                            $motivos[] = "Motivo 3 - Modify diferente de Change no arquivo" . basename($arquivo);
+                            $motivos[] = "Motivo 3 - Modify diferente de Change no arquivo " . basename($arquivo);
                         }
                 
                         // Motivo 4 - Nome do arquivo não bate com Modify
