@@ -139,47 +139,14 @@ escolheropcoes:
                     echo $bold . $vermelho . "[!] Não foi possível obter a versão do Android.\n";
                 }
 
-                $comandoVerificacoes = [
-                    'test_adb'     => 'adb shell echo ADB_OK 2>/dev/null',
-                    'su_bin1'      => 'adb shell "[ -f /system/bin/su ] && echo found" 2>/dev/null',
-                    'su_bin2'      => 'adb shell "[ -f /system/xbin/su ] && echo found" 2>/dev/null',
-                    'su_funciona'  => 'adb shell su -c "id" 2>/dev/null',
-                    'which_su'     => 'adb shell "which su" 2>/dev/null',
-                    'magisk_ver'   => 'adb shell "su -c magisk --version" 2>/dev/null',
-                    'adb_root'     => 'adb root 2>/dev/null',
-                ];
-                
-                $rootDetectado = false;
-                $erroAdb = false;
-                
-                foreach ($comandoVerificacoes as $nome => $comando) {
-                    $resultado = shell_exec($comando);
-                
-                    if ($nome === 'test_adb' && (empty($resultado) || strpos($resultado, 'ADB_OK') === false)) {
-                        $erroAdb = true;
-                        break;
-                    }
-                
-                    if (
-                        !empty($resultado) &&
-                        (
-                            strpos($resultado, 'uid=0') !== false ||   
-                            strpos($resultado, 'found') !== false ||       
-                            strpos($resultado, '/su') !== false ||      
-                            strpos($resultado, 'magisk') !== false   
-                        )
-                    ) {
-                        $rootDetectado = true;
-                        break;
-                    }
-                }
-                
-                if ($erroAdb) {
-                    echo $bold . $vermelho . "[+] Ambiente Termux modificado, aplique o W.O.\n\n";
-                } elseif ($rootDetectado) {
-                    echo $bold . $vermelho . "[+] Root detectado no dispositivo Android.\n\n";
-                } else {
+
+                $comandoSu = 'su 2>&1';
+                $resultadoSu = shell_exec($comandoSu);
+
+                if (!empty($resultadoSu) && strpos($resultadoSu, 'No su program found') !== false) {
                     echo $bold . $fverde . "[-] O dispositivo não tem root.\n\n";
+                } else {
+                    echo $bold . $vermelho . "[+] Root detectado no dispositivo Android.\n\n";
                 }
                 
 
@@ -1149,47 +1116,13 @@ escolheropcoes:
                     echo $bold . $vermelho . "[!] Não foi possível obter a versão do Android.\n";
                 }
 
-                $comandoVerificacoes = [
-                    'test_adb'     => 'adb shell echo ADB_OK 2>/dev/null',
-                    'su_bin1'      => 'adb shell "[ -f /system/bin/su ] && echo found" 2>/dev/null',
-                    'su_bin2'      => 'adb shell "[ -f /system/xbin/su ] && echo found" 2>/dev/null',
-                    'su_funciona'  => 'adb shell su -c "id" 2>/dev/null',
-                    'which_su'     => 'adb shell "which su" 2>/dev/null',
-                    'magisk_ver'   => 'adb shell "su -c magisk --version" 2>/dev/null',
-                    'adb_root'     => 'adb root 2>/dev/null',
-                ];
-                
-                $rootDetectado = false;
-                $erroAdb = false;
-                
-                foreach ($comandoVerificacoes as $nome => $comando) {
-                    $resultado = shell_exec($comando);
-                
-                    if ($nome === 'test_adb' && (empty($resultado) || strpos($resultado, 'ADB_OK') === false)) {
-                        $erroAdb = true;
-                        break;
-                    }
-                
-                    if (
-                        !empty($resultado) &&
-                        (
-                            strpos($resultado, 'uid=0') !== false ||   
-                            strpos($resultado, 'found') !== false ||       
-                            strpos($resultado, '/su') !== false ||      
-                            strpos($resultado, 'magisk') !== false   
-                        )
-                    ) {
-                        $rootDetectado = true;
-                        break;
-                    }
-                }
-                
-                if ($erroAdb) {
-                    echo $bold . $vermelho . "[+] Ambiente Termux modificado, aplique o W.O.\n\n";
-                } elseif ($rootDetectado) {
-                    echo $bold . $vermelho . "[+] Root detectado no dispositivo Android.\n\n";
-                } else {
+                $comandoSu = 'su 2>&1';
+                $resultadoSu = shell_exec($comandoSu);
+
+                if (!empty($resultadoSu) && strpos($resultadoSu, 'No su program found') !== false) {
                     echo $bold . $fverde . "[-] O dispositivo não tem root.\n\n";
+                } else {
+                    echo $bold . $vermelho . "[+] Root detectado no dispositivo Android.\n\n";
                 }
                 
 
