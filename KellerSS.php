@@ -598,6 +598,113 @@ escolheropcoes:
 
                 echo $bold . $azul . "[+] Checando bypass de Wallhack/Holograma...\n";
 
+
+                
+                $comandoFindLibmain = 'adb shell "find /data/app -type f -name "libmain.so" 2>/dev/null"';
+                $comandoFindLibunity = 'adb shell "find /data/app -type f -name "libunity.so" 2>/dev/null"';
+                
+                $arquivosLibmain = shell_exec($comandoFindLibmain);
+                $arquivosLibunity = shell_exec($comandoFindLibunity);
+                
+                $pastasValidas = [];
+                $bypassDetectado = false;
+                
+                if (!empty($arquivosLibmain) && !empty($arquivosLibunity)) {
+                    $listaLibmain = array_filter(explode("\n", trim($arquivosLibmain)));
+                    $listaLibunity = array_filter(explode("\n", trim($arquivosLibunity)));
+         
+                    foreach ($listaLibmain as $caminhoLibmain) {
+                        $caminhoLibmain = trim($caminhoLibmain);
+                        if (empty($caminhoLibmain)) continue;
+                        
+
+                        if (stripos($caminhoLibmain, 'freefire') === false) continue;
+                        
+                        $pastaLibmain = dirname($caminhoLibmain);
+                        
+      
+                        $caminhoLibunity = $pastaLibmain . '/libunity.so';
+                        
+                        foreach ($listaLibunity as $caminhoLibunityEncontrado) {
+                            $caminhoLibunityEncontrado = trim($caminhoLibunityEncontrado);
+                            if ($caminhoLibunityEncontrado === $caminhoLibunity) {
+
+                                $pastasValidas[] = [
+                                    'pasta' => $pastaLibmain,
+                                    'libmain' => $caminhoLibmain,
+                                    'libunity' => $caminhoLibunity
+                                ];
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (!empty($pastasValidas)) {
+                        $timestampMaisRecente = 0;
+                        $arquivoMaisRecente = null;
+                        $pastaMaisRecente = null;
+                        
+                        foreach ($pastasValidas as $pastaInfo) {
+                            $comandoStatMain = 'adb shell stat ' . escapeshellarg($pastaInfo['libmain']) . ' 2>&1';
+                            $resultadoStatMain = shell_exec($comandoStatMain);
+                            
+                            $comandoStatUnity = 'adb shell stat ' . escapeshellarg($pastaInfo['libunity']) . ' 2>&1';
+                            $resultadoStatUnity = shell_exec($comandoStatUnity);
+                            
+                            foreach ([$resultadoStatMain => 'libmain.so', $resultadoStatUnity => 'libunity.so'] as $resultado => $nomeArquivo) {
+                                if (strpos($resultado, 'File:') !== false) {
+                                    preg_match('/Modify: (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+)/', $resultado, $matchModify);
+                                    preg_match('/Change: (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+)/', $resultado, $matchChange);
+                                    
+                                    if ($matchModify && $matchChange) {
+                                        $dataModify = trim($matchModify[1]);
+                                        $dataChange = trim($matchChange[1]);
+                                        
+                                        $timestampModify = strtotime(preg_replace('/\.\d+.*$/', '', $dataModify));
+                                        $timestampChange = strtotime(preg_replace('/\.\d+.*$/', '', $dataChange));
+                                        $timestampArquivo = max($timestampModify, $timestampChange);
+                                        
+                                        if ($timestampArquivo > $timestampMaisRecente) {
+                                            $timestampMaisRecente = $timestampArquivo;
+                                            $arquivoMaisRecente = $nomeArquivo;
+                                            $pastaMaisRecente = $pastaInfo['pasta'];
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
+                        if ($timestampMaisRecente > 0) {
+                            $agora = time();
+                            $diferencaSegundos = $agora - $timestampMaisRecente;
+                            $diferencaHoras = $diferencaSegundos / 3600;
+                            
+                            $dataFormatada = date('d-m-Y H:i:s', $timestampMaisRecente);
+                            $nomePastaFinal = basename(dirname($pastaMaisRecente));
+                            
+                            echo $bold . $verde . "[!] Ambos arquivos encontrados em: $nomePastaFinal\n";
+                            
+                            if ($diferencaHoras < 1) {
+                                echo $bold . $vermelho . "[!] POSSÍVEL BYPASS DETECTADO!\n";
+                                echo $bold . $amarelo . "[i] Arquivo mais recente: $arquivoMaisRecente\n";
+                                echo $bold . $amarelo . "[i] Pasta: $pastaMaisRecente\n";
+                                echo $bold . $amarelo . "[i] Horário da modificação: $dataFormatada\n";
+                                echo $bold . $amarelo . "[i] Modificado há " . round($diferencaHoras * 60, 1) . " minutos\n";
+                                echo $bold . $branco . "[#] Verifique se a modificação foi após a partida, se sim, aplique o W.O!\n\n";
+                                $bypassDetectado = true;
+                            } else {
+                                echo $bold . $verde . "[!] Arquivo $arquivoMaisRecente modificado há " . round($diferencaHoras, 1) . " horas ($dataFormatada)\n\n";
+                            }
+                        } else {
+                            echo $bold . $vermelho . "[!] Não foi possível obter informações dos arquivos encontrados, aplique o W.O!\n\n";
+                        }
+                    } else {
+                        echo $bold . $vermelho . "[!] Ambos arquivos não foram encontrados na mesma pasta com 'freefire' no caminho, aplique o W.O!\n\n";
+                    }
+                } else {
+                    echo $bold . $vermelho . "[!] libmain.so e libunity.so não foram encontrados em /data/app, aplique o W.O!\n\n";
+                }
+
                 $pastasParaVerificar = [
                     "/sdcard/Android/data/com.dts.freefireth/files/contentcache/Optional/android/gameassetbundles",
                     "/sdcard/Android/data/com.dts.freefireth/files/contentcache/Optional/android",
@@ -1635,6 +1742,112 @@ escolheropcoes:
 
 
                 echo $bold . $azul . "[+] Checando bypass de Wallhack/Holograma...\n";
+
+
+                $comandoFindLibmain = 'adb shell "find /data/app -type f -name "libmain.so" 2>/dev/null"';
+                $comandoFindLibunity = 'adb shell "find /data/app -type f -name "libunity.so" 2>/dev/null"';
+                
+                $arquivosLibmain = shell_exec($comandoFindLibmain);
+                $arquivosLibunity = shell_exec($comandoFindLibunity);
+                
+                $pastasValidas = [];
+                $bypassDetectado = false;
+                
+                if (!empty($arquivosLibmain) && !empty($arquivosLibunity)) {
+                    $listaLibmain = array_filter(explode("\n", trim($arquivosLibmain)));
+                    $listaLibunity = array_filter(explode("\n", trim($arquivosLibunity)));
+         
+                    foreach ($listaLibmain as $caminhoLibmain) {
+                        $caminhoLibmain = trim($caminhoLibmain);
+                        if (empty($caminhoLibmain)) continue;
+                        
+
+                        if (stripos($caminhoLibmain, 'freefire') === false) continue;
+                        
+                        $pastaLibmain = dirname($caminhoLibmain);
+                        
+      
+                        $caminhoLibunity = $pastaLibmain . '/libunity.so';
+                        
+                        foreach ($listaLibunity as $caminhoLibunityEncontrado) {
+                            $caminhoLibunityEncontrado = trim($caminhoLibunityEncontrado);
+                            if ($caminhoLibunityEncontrado === $caminhoLibunity) {
+
+                                $pastasValidas[] = [
+                                    'pasta' => $pastaLibmain,
+                                    'libmain' => $caminhoLibmain,
+                                    'libunity' => $caminhoLibunity
+                                ];
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (!empty($pastasValidas)) {
+                        $timestampMaisRecente = 0;
+                        $arquivoMaisRecente = null;
+                        $pastaMaisRecente = null;
+                        
+                        foreach ($pastasValidas as $pastaInfo) {
+                            $comandoStatMain = 'adb shell stat ' . escapeshellarg($pastaInfo['libmain']) . ' 2>&1';
+                            $resultadoStatMain = shell_exec($comandoStatMain);
+                            
+                            $comandoStatUnity = 'adb shell stat ' . escapeshellarg($pastaInfo['libunity']) . ' 2>&1';
+                            $resultadoStatUnity = shell_exec($comandoStatUnity);
+                            
+                            foreach ([$resultadoStatMain => 'libmain.so', $resultadoStatUnity => 'libunity.so'] as $resultado => $nomeArquivo) {
+                                if (strpos($resultado, 'File:') !== false) {
+                                    preg_match('/Modify: (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+)/', $resultado, $matchModify);
+                                    preg_match('/Change: (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+)/', $resultado, $matchChange);
+                                    
+                                    if ($matchModify && $matchChange) {
+                                        $dataModify = trim($matchModify[1]);
+                                        $dataChange = trim($matchChange[1]);
+                                        
+                                        $timestampModify = strtotime(preg_replace('/\.\d+.*$/', '', $dataModify));
+                                        $timestampChange = strtotime(preg_replace('/\.\d+.*$/', '', $dataChange));
+                                        $timestampArquivo = max($timestampModify, $timestampChange);
+                                        
+                                        if ($timestampArquivo > $timestampMaisRecente) {
+                                            $timestampMaisRecente = $timestampArquivo;
+                                            $arquivoMaisRecente = $nomeArquivo;
+                                            $pastaMaisRecente = $pastaInfo['pasta'];
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
+                        if ($timestampMaisRecente > 0) {
+                            $agora = time();
+                            $diferencaSegundos = $agora - $timestampMaisRecente;
+                            $diferencaHoras = $diferencaSegundos / 3600;
+                            
+                            $dataFormatada = date('d-m-Y H:i:s', $timestampMaisRecente);
+                            $nomePastaFinal = basename(dirname($pastaMaisRecente));
+                            
+                            echo $bold . $verde . "[!] Ambos arquivos encontrados em: $nomePastaFinal\n";
+                            
+                            if ($diferencaHoras < 1) {
+                                echo $bold . $vermelho . "[!] POSSÍVEL BYPASS DETECTADO!\n";
+                                echo $bold . $amarelo . "[i] Arquivo mais recente: $arquivoMaisRecente\n";
+                                echo $bold . $amarelo . "[i] Pasta: $pastaMaisRecente\n";
+                                echo $bold . $amarelo . "[i] Horário da modificação: $dataFormatada\n";
+                                echo $bold . $amarelo . "[i] Modificado há " . round($diferencaHoras * 60, 1) . " minutos\n";
+                                echo $bold . $branco . "[#] Verifique se a modificação foi após a partida, se sim, aplique o W.O!\n\n";
+                                $bypassDetectado = true;
+                            } else {
+                                echo $bold . $verde . "[!] Arquivo $arquivoMaisRecente modificado há " . round($diferencaHoras, 1) . " horas ($dataFormatada)\n\n";
+                            }
+                        } else {
+                            echo $bold . $vermelho . "[!] Não foi possível obter informações dos arquivos encontrados, aplique o W.O!\n\n";
+                        }
+                    } else {
+                        echo $bold . $vermelho . "[!] Ambos arquivos não foram encontrados na mesma pasta com 'freefire' no caminho, aplique o W.O!\n\n";
+                    }
+                } else {
+                    echo $bold . $vermelho . "[!] libmain.so e libunity.so não foram encontrados em /data/app, aplique o W.O!\n\n";
+                }
 
                 $pastasParaVerificar = [
                     "/sdcard/Android/data/com.dts.freefiremax/files/contentcache/Optional/android/gameassetbundles",
