@@ -1362,16 +1362,7 @@ escolheropcoes:
                                 }
                         
                                
-                                if (isset($modifyParts[2])) {
-                                    $nanoStr = str_pad($modifyParts[2], 9, '0'); 
-                                    if (strlen($nanoStr) >= 6) {
-										$aposTerceiro = substr($nanoStr, 3);
-
-										if (preg_match('/^0+$/', $aposTerceiro) || preg_match('/^9+$/', $aposTerceiro)) {
-											$motivos[] = "Motivo 13 - Nanosegundos suspeitos após 3 dígitos (somente 0 ou somente 9): " . basename($arquivo);
-										}
-									}
-                                }
+                                
                             }
                         }
                         
