@@ -73,7 +73,7 @@ menuscanner:
       +--------------------------------------------------------------+
 
       \n\n";
-      echo $amarelo . " [0]  Instalar Módulos$branco (Atualizar e instalar módulos)$fverde \n [1]  Escanear FreeFire Normal \n$fverde [2]  Escanear FreeFire Max \n {$vermelho}[S]  Sair \n\n" . $cln;
+      echo $amarelo . " [0]  Conectar ADB$branco (Pareamento e conexão via ADB)$fverde \n [1]  Escanear FreeFire Normal \n$fverde [2]  Escanear FreeFire Max \n {$vermelho}[S]  Sair \n\n" . $cln;
 escolheropcoes:
     inputusuario("Escolha uma das opções acima");
     $opcaoscanner = trim(fgets(STDIN, 1024));
@@ -92,7 +92,44 @@ escolheropcoes:
     else
     {
         if ($opcaoscanner == "0") {
-            // Código para a opção 0
+            system("clear");
+            keller_banner();
+            
+            // Pareamento ADB
+            inputusuario("Qual a sua porta para o pareamento (ex: 45678)?");
+            $pair_port = trim(fgets(STDIN, 1024));
+            if (!empty($pair_port) && is_numeric($pair_port)) {
+                echo $bold . $amarelo . "\n[!] Agora, digite o código de pareamento que aparece no seu celular e pressione Enter.\n" . $cln;
+                system("adb pair localhost:" . $pair_port);
+            } else {
+                echo $bold . $vermelho . "\n[!] Porta inválida! Retornando ao menu.\n\n" . $cln;
+                sleep(2);
+                system("clear");
+                keller_banner();
+                goto menuscanner;
+            }
+            
+            echo "\n";
+            
+            // Conexão ADB
+            inputusuario("Qual a sua porta para a conexão (ex: 12345)?");
+            $connect_port = trim(fgets(STDIN, 1024));
+            if (!empty($connect_port) && is_numeric($connect_port)) {
+                echo $bold . $amarelo . "\n[!] Conectando ao dispositivo...\n" . $cln;
+                system("adb connect localhost:" . $connect_port);
+                echo $bold . $fverde . "\n[i] Processo de conexão finalizado. Verifique a saída acima para ver se a conexão foi bem-sucedida.\n" . $cln;
+                echo $bold . $branco . "\n[+] Pressione Enter para voltar ao menu...\n" . $cln;
+                fgets(STDIN, 1024);
+                system("clear");
+                keller_banner();
+                goto menuscanner;
+            } else {
+                echo $bold . $vermelho . "\n[!] Porta inválida! Retornando ao menu.\n\n" . $cln;
+                sleep(2);
+                system("clear");
+                keller_banner();
+                goto menuscanner;
+            }
         } elseif ($opcaoscanner == "1") {
             system("clear");
             keller_banner();
