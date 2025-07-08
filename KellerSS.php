@@ -700,6 +700,14 @@ escolheropcoes:
                     $firstInstallDate = $matchInstall[1];
                 }
 
+                $cmdUpdate = "adb shell dumpsys package com.dts.freefireth | grep -i lastUpdateTime";
+                $lastUpdateTime = shell_exec($cmdUpdate);
+
+                $lastUpdateDate = null;
+                if (preg_match('/lastUpdateTime=(\d{4}-\d{2}-\d{2})/', $lastUpdateTime, $matchUpdate)) {
+                    $lastUpdateDate = $matchUpdate[1];
+                }
+
                 $pastaShaders = "/sdcard/Android/data/com.dts.freefireth/files/contentcache/Optional/android/gameassetbundles";
 
                 $comandoFind = 'adb shell find ' . escapeshellarg($pastaShaders) . ' -name "shaders*" -type f 2>&1';
@@ -727,14 +735,29 @@ escolheropcoes:
                                 $nomeArquivo = basename($arquivo);
                 
                                 if ($accessDate === $modifyDate && $modifyDate === $changeDate) {
+                                    $timestampArquivo = strtotime($accessDate);
+                                    $ignorarAviso = false;
+                                    
                                     if ($firstInstallDate) {
-                                        $timestampArquivo = strtotime($accessDate);
                                         $timestampInstalacao = strtotime($firstInstallDate);
-                                        $diferencaSegundos = abs($timestampArquivo - $timestampInstalacao);
-                                
-                                        if ($diferencaSegundos <= 86400) {
-                                            continue;
+                                        $diferencaSegundosInstall = abs($timestampArquivo - $timestampInstalacao);
+                                        
+                                        if ($diferencaSegundosInstall <= 86400) {
+                                            $ignorarAviso = true;
                                         }
+                                    }
+
+                                    if (!$ignorarAviso && $lastUpdateDate) {
+                                        $timestampAtualizacao = strtotime($lastUpdateDate);
+                                        $diferencaSegundosUpdate = abs($timestampArquivo - $timestampAtualizacao);
+                                        
+                                        if ($diferencaSegundosUpdate <= 86400) {
+                                            $ignorarAviso = true;
+                                        }
+                                    }
+                                    
+                                    if ($ignorarAviso) {
+                                        continue;
                                     }
                                 
                                     echo $bold . $laranja . "[!] Possível Bypass Holograma detectado (ACCESS, MODIFY, CHANGE iguais)\n";
@@ -748,6 +771,13 @@ escolheropcoes:
                 
                                     echo $bold . $laranja . "[!] Data da modificação (Access/Modify/Change): $dataAccessFormatada\n";
                                     echo $bold . $laranja . "[!] Data de instalação do FF: $dataInstallFormatada\n";
+                                    
+                                    if ($lastUpdateDate) {
+                                        $dateTimeUpdate = DateTime::createFromFormat('Y-m-d H:i:s', $lastUpdateDate);
+                                        $dataUpdateFormatada = $dateTimeUpdate ? $dateTimeUpdate->format('d-m-Y H:i:s') : $lastUpdateDate;
+                                        echo $bold . $laranja . "[!] Data de atualização do FF: $dataUpdateFormatada\n";
+                                    }
+                                    
                                     echo $bold . $laranja . "[!] Se for após a partida, aplique o W.O!\n\n";
                                     continue;
                                 }
@@ -1671,12 +1701,20 @@ escolheropcoes:
                 }
 
 
-                $cmd = "adb shell dumpsys package com.dts.freefiremax | grep -i firstInstallTime";
+                                $cmd = "adb shell dumpsys package com.dts.freefiremax | grep -i firstInstallTime";
                 $firstInstallTime = shell_exec($cmd);
 
                 $firstInstallDate = null;
                 if (preg_match('/firstInstallTime=(\d{4}-\d{2}-\d{2})/', $firstInstallTime, $matchInstall)) {
                     $firstInstallDate = $matchInstall[1];
+                }
+
+                $cmdUpdate = "adb shell dumpsys package com.dts.freefiremax | grep -i lastUpdateTime";
+                $lastUpdateTime = shell_exec($cmdUpdate);
+
+                $lastUpdateDate = null;
+                if (preg_match('/lastUpdateTime=(\d{4}-\d{2}-\d{2})/', $lastUpdateTime, $matchUpdate)) {
+                    $lastUpdateDate = $matchUpdate[1];
                 }
 
                 $pastaShaders = "/sdcard/Android/data/com.dts.freefiremax/files/contentcache/Optional/android/gameassetbundles";
@@ -1706,14 +1744,29 @@ escolheropcoes:
                                 $nomeArquivo = basename($arquivo);
                 
                                 if ($accessDate === $modifyDate && $modifyDate === $changeDate) {
+                                    $timestampArquivo = strtotime($accessDate);
+                                    $ignorarAviso = false;
+                                    
                                     if ($firstInstallDate) {
-                                        $timestampArquivo = strtotime($accessDate);
                                         $timestampInstalacao = strtotime($firstInstallDate);
-                                        $diferencaSegundos = abs($timestampArquivo - $timestampInstalacao);
-                                
-                                        if ($diferencaSegundos <= 86400) {
-                                            continue;
+                                        $diferencaSegundosInstall = abs($timestampArquivo - $timestampInstalacao);
+                                        
+                                        if ($diferencaSegundosInstall <= 86400) {
+                                            $ignorarAviso = true;
                                         }
+                                    }
+
+                                    if (!$ignorarAviso && $lastUpdateDate) {
+                                        $timestampAtualizacao = strtotime($lastUpdateDate);
+                                        $diferencaSegundosUpdate = abs($timestampArquivo - $timestampAtualizacao);
+                                        
+                                        if ($diferencaSegundosUpdate <= 86400) {
+                                            $ignorarAviso = true;
+                                        }
+                                    }
+                                    
+                                    if ($ignorarAviso) {
+                                        continue;
                                     }
                                 
                                     echo $bold . $laranja . "[!] Possível Bypass Holograma detectado (ACCESS, MODIFY, CHANGE iguais)\n";
@@ -1727,6 +1780,13 @@ escolheropcoes:
                 
                                     echo $bold . $laranja . "[!] Data da modificação (Access/Modify/Change): $dataAccessFormatada\n";
                                     echo $bold . $laranja . "[!] Data de instalação do FF: $dataInstallFormatada\n";
+                                    
+                                    if ($lastUpdateDate) {
+                                        $dateTimeUpdate = DateTime::createFromFormat('Y-m-d H:i:s', $lastUpdateDate);
+                                        $dataUpdateFormatada = $dateTimeUpdate ? $dateTimeUpdate->format('d-m-Y H:i:s') : $lastUpdateDate;
+                                        echo $bold . $laranja . "[!] Data de atualização do FF: $dataUpdateFormatada\n";
+                                    }
+                                    
                                     echo $bold . $laranja . "[!] Se for após a partida, aplique o W.O!\n\n";
                                     continue;
                                 }
