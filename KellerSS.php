@@ -95,6 +95,17 @@ escolheropcoes:
             system("clear");
             keller_banner();
             
+            // Verificar e instalar android-tools se necessário
+            echo $bold . $azul . "[+] Verificando se o ADB está instalado...\n" . $cln;
+            if (!shell_exec("adb version > /dev/null 2>&1"))
+            {
+                echo $bold . $amarelo . "[!] ADB não encontrado. Instalando android-tools...\n" . $cln;
+                system("pkg install android-tools -y");
+                echo $bold . $fverde . "[i] Android-tools instalado com sucesso!\n\n" . $cln;
+            } else {
+                echo $bold . $fverde . "[i] ADB já está instalado.\n\n" . $cln;
+            }
+            
             // Pareamento ADB
             inputusuario("Qual a sua porta para o pareamento (ex: 45678)?");
             $pair_port = trim(fgets(STDIN, 1024));
@@ -531,6 +542,23 @@ escolheropcoes:
                     }
                 }
                 
+
+
+                $comandoLs = 'adb shell "ls -l /sdcard/Android/data/com.dts.freefireth/files/MReplays/*.bin 2>/dev/null"';
+                $outputLs = shell_exec($comandoLs) ?? '';
+                $linhasLs = array_filter(explode("\n", trim($outputLs)));
+                
+                foreach ($linhasLs as $linha) {
+                    if (preg_match('/^-[rwx-]{9}\s+\d+\s+(\S+)\s+(\S+)\s+\d+\s+[\d-]+\s+[\d:]+\s+(.+\.bin)$/', $linha, $matches)) {
+                        $dono = $matches[1];
+                        $grupo = $matches[2];
+                        $nomeArquivo = basename($matches[3]);
+                        
+                        if ($dono === $grupo) {
+                            $motivos[] = "Motivo 13 - Dono e grupo iguais (suspeito): $nomeArquivo (dono: $dono, grupo: $grupo)";
+                        }
+                    }
+                }
 
                 if (!empty($motivos)) {
                     echo $bold . $vermelho . "[!] Passador de replay detectado, aplique o W.O!\n";
@@ -1538,6 +1566,21 @@ escolheropcoes:
                     }
                 }
                 
+                $comandoLs = 'adb shell "ls -l /sdcard/Android/data/com.dts.freefiremax/files/MReplays/*.bin 2>/dev/null"';
+                $outputLs = shell_exec($comandoLs) ?? '';
+                $linhasLs = array_filter(explode("\n", trim($outputLs)));
+                
+                foreach ($linhasLs as $linha) {
+                    if (preg_match('/^-[rwx-]{9}\s+\d+\s+(\S+)\s+(\S+)\s+\d+\s+[\d-]+\s+[\d:]+\s+(.+\.bin)$/', $linha, $matches)) {
+                        $dono = $matches[1];
+                        $grupo = $matches[2];
+                        $nomeArquivo = basename($matches[3]);
+                        
+                        if ($dono === $grupo) {
+                            $motivos[] = "Motivo 13 - Dono e grupo iguais (suspeito): $nomeArquivo (dono: $dono, grupo: $grupo)";
+                        }
+                    }
+                }
 
                 if (!empty($motivos)) {
                     echo $bold . $vermelho . "[!] Passador de replay detectado, aplique o W.O!\n";
