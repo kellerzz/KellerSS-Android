@@ -199,6 +199,22 @@ escolheropcoes:
                 }
                 
 
+            echo $bold . $azul . "[+] Verificando scripts ativos em segundo plano...\n";
+            $comandoScripts = 'adb shell "pgrep -a bash | awk \'{\$1=\"\"; sub(/^ /,\"\"); print}\' | grep -vFx \"/data/data/com.termux/files/usr/bin/bash -l\""';
+            $scriptsAtivos = shell_exec($comandoScripts);
+            
+            if (!empty(trim($scriptsAtivos))) {
+                echo $bold . $vermelho . "[!] Scripts detectados rodando em segundo plano! Cancelando scanner...\n";
+                echo $bold . $amarelo . "Scripts encontrados:\n" . trim($scriptsAtivos) . "\n\n";
+                exit;
+            }
+            
+            echo $bold . $fverde . "[i] Nenhum script ativo detectado.\n";
+            echo $bold . $azul . "[+] Finalizando sessões bash desnecessárias...\n";
+            $comandoKillBash = 'adb shell "current_pid=\$\$; for pid in \$(pgrep bash); do [ \"\$pid\" -ne \"\$current_pid\" ] && kill -9 \$pid; done"';
+            shell_exec($comandoKillBash);
+            echo $bold . $fverde . "[i] Sessões desnecessárias finalizadas.\n\n";
+
 
             echo $bold . $azul . "[+] Checando se o dispositivo foi reiniciado recentemente...\n";
             $comandoUPTIME = shell_exec("adb shell uptime");
@@ -1222,6 +1238,22 @@ escolheropcoes:
                     echo $bold . $vermelho . "[+] Root detectado no dispositivo Android.\n\n";
                 }
                 
+
+            echo $bold . $azul . "[+] Verificando scripts ativos em segundo plano...\n";
+            $comandoScripts = 'adb shell "pgrep -a bash | awk \'{\$1=\"\"; sub(/^ /,\"\"); print}\' | grep -vFx \"/data/data/com.termux/files/usr/bin/bash -l\""';
+            $scriptsAtivos = shell_exec($comandoScripts);
+            
+            if (!empty(trim($scriptsAtivos))) {
+                echo $bold . $vermelho . "[!] Scripts detectados rodando em segundo plano! Cancelando scanner...\n";
+                echo $bold . $amarelo . "Scripts encontrados:\n" . trim($scriptsAtivos) . "\n\n";
+                exit;
+            }
+            
+            echo $bold . $fverde . "[i] Nenhum script ativo detectado.\n";
+            echo $bold . $azul . "[+] Finalizando sessões bash desnecessárias...\n";
+            $comandoKillBash = 'adb shell "current_pid=\$\$; for pid in \$(pgrep bash); do [ \"\$pid\" -ne \"\$current_pid\" ] && kill -9 \$pid; done"';
+            shell_exec($comandoKillBash);
+            echo $bold . $fverde . "[i] Sessões desnecessárias finalizadas.\n\n";
 
 
             echo $bold . $azul . "[+] Checando se o dispositivo foi reiniciado recentemente...\n";
