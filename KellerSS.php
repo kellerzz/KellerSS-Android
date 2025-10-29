@@ -53,6 +53,258 @@ function atualizar()
     exit;
 }
 
+function detectarBypassShell() {
+    global $bold, $vermelho, $amarelo, $fverde, $azul, $branco, $cln;
+    
+    $bypassDetectado = false;
+    
+    // 1. Verificar funções maliciosas no ambiente atual (independente do arquivo)
+    echo $bold . $azul . "[+] Verificando funções maliciosas no ambiente shell...\n";
+    
+    // Testar se as funções estão ativas no ambiente atual
+    $funcoesTeste = [
+        'pkg' => 'adb shell "type pkg 2>/dev/null | grep -q function && echo FUNCTION_DETECTED"',
+        'git' => 'adb shell "type git 2>/dev/null | grep -q function && echo FUNCTION_DETECTED"', 
+        'cd' => 'adb shell "type cd 2>/dev/null | grep -q function && echo FUNCTION_DETECTED"',
+        'stat' => 'adb shell "type stat 2>/dev/null | grep -q function && echo FUNCTION_DETECTED"',
+        'adb' => 'adb shell "type adb 2>/dev/null | grep -q function && echo FUNCTION_DETECTED"'
+    ];
+    
+    foreach ($funcoesTeste as $funcao => $comando) {
+        $resultado = shell_exec($comando);
+        if (strpos($resultado, 'FUNCTION_DETECTED') !== false) {
+            echo $bold . $vermelho . "[!] BYPASS DETECTADO: Função '$funcao' foi sobrescrita!\n";
+            $bypassDetectado = true;
+        }
+     
+     // 6. Teste final de integridade - verificar se conseguimos acessar diretórios críticos
+     echo $bold . $azul . "[+] Testando acesso a diretórios críticos...\n";
+     
+     $diretoriosCriticos = [
+         '/system/bin',
+         '/data/data/com.dts.freefireth/files',
+         '/data/data/com.dts.freefiremax/files',
+         '/storage/emulated/0/Android/data'
+     ];
+     
+     foreach ($diretoriosCriticos as $diretorio) {
+         $comandoTestDir = 'adb shell "ls -la \"' . $diretorio . '\" 2>/dev/null | head -3"';
+         $resultadoTestDir = shell_exec($comandoTestDir);
+         
+         // Se não conseguir listar ou retornar algo suspeito
+         if (empty(trim($resultadoTestDir)) || 
+             strpos($resultadoTestDir, 'Permission denied') !== false ||
+             strpos($resultadoTestDir, 'blocked') !== false ||
+             strpos($resultadoTestDir, 'redirected') !== false) {
+             
+             echo $bold . $amarelo . "[!] Acesso suspeito ao diretório: $diretorio\n";
+         }
+     }
+     
+     // 7. Verificar se há processos suspeitos rodando
+     echo $bold . $azul . "[+] Verificando processos suspeitos...\n";
+     
+     $comandoProcessos = 'adb shell "ps | grep -E \"(bypass|block|redirect|fake)\" 2>/dev/null"';
+     $resultadoProcessos = shell_exec($comandoProcessos);
+     
+     if (!empty(trim($resultadoProcessos))) {
+         echo $bold . $vermelho . "[!] BYPASS DETECTADO: Processos suspeitos em execução!\n";
+         echo $bold . $amarelo . "[!] Processos encontrados:\n" . trim($resultadoProcessos) . "\n";
+         $bypassDetectado = true;
+     }
+    }
+    
+    // Verificar arquivos de configuração comuns
+    echo $bold . $azul . "[+] Verificando arquivos de configuração...\n";
+    $arquivosConfig = [
+        '~/.bashrc', '~/.bash_profile', '~/.profile', '~/.zshrc', 
+        '~/.config/fish/config.fish', '/data/data/com.termux/files/usr/etc/bash.bashrc'
+    ];
+    
+    foreach ($arquivosConfig as $arquivo) {
+        $comandoVerificar = 'adb shell "if [ -f ' . $arquivo . ' ]; then cat ' . $arquivo . ' | grep -E \"(function pkg|function git|function cd|function stat|function adb)\" 2>/dev/null; fi"';
+        $resultadoArquivo = shell_exec($comandoVerificar);
+        
+        if (!empty(trim($resultadoArquivo))) {
+            echo $bold . $vermelho . "[!] BYPASS DETECTADO: Funções maliciosas em $arquivo!\n";
+            echo $bold . $amarelo . "[!] Conteúdo detectado:\n" . trim($resultadoArquivo) . "\n";
+            $bypassDetectado = true;
+        }
+    }
+    
+    // 2. Testar comportamento real das funções (mais eficaz que procurar variáveis)
+     echo $bold . $azul . "[+] Testando comportamento real das funções...\n";
+     
+     // Teste 1: Verificar se git clone está sendo redirecionado
+     $comandoTestGitReal = 'adb shell "cd /tmp 2>/dev/null || cd /data/local/tmp; git clone --help 2>&1 | head -1"';
+     $resultadoGitHelp = shell_exec($comandoTestGitReal);
+     
+     // Se o git clone não mostrar a ajuda normal, pode estar sendo interceptado
+     if (empty($resultadoGitHelp) || strpos($resultadoGitHelp, 'usage: git') === false) {
+         // Teste mais direto: tentar clonar e ver se há redirecionamento
+         $comandoTestClone = 'adb shell "cd /tmp 2>/dev/null || cd /data/local/tmp; timeout 5 git clone https://github.com/kellerzz/KellerSS-Android test-repo 2>&1 | head -3"';
+         $resultadoClone = shell_exec($comandoTestClone);
+         
+         if (strpos($resultadoClone, 'wendell77x') !== false || 
+             strpos($resultadoClone, 'Comando bloqueado') !== false ||
+             strpos($resultadoClone, 'blocked') !== false) {
+             echo $bold . $vermelho . "[!] BYPASS DETECTADO: Git clone sendo redirecionado!\n";
+             echo $bold . $amarelo . "[!] Resposta: " . trim($resultadoClone) . "\n";
+             $bypassDetectado = true;
+         }
+     }
+     
+     // Teste 2: Verificar se pkg install está sendo bloqueado
+     $comandoTestPkgReal = 'adb shell "pkg --help 2>&1 | head -1"';
+     $resultadoPkgHelp = shell_exec($comandoTestPkgReal);
+     
+     if (empty($resultadoPkgHelp) || strpos($resultadoPkgHelp, 'Usage:') === false) {
+         $comandoTestPkgInstall = 'adb shell "timeout 3 pkg install --help 2>&1"';
+         $resultadoPkgInstall = shell_exec($comandoTestPkgInstall);
+         
+         if (strpos($resultadoPkgInstall, 'Comando bloqueado') !== false ||
+             strpos($resultadoPkgInstall, 'blocked') !== false ||
+             empty(trim($resultadoPkgInstall))) {
+             echo $bold . $vermelho . "[!] BYPASS DETECTADO: Comando pkg sendo bloqueado!\n";
+             echo $bold . $amarelo . "[!] Resposta: " . trim($resultadoPkgInstall) . "\n";
+             $bypassDetectado = true;
+         }
+     }
+    
+    // 3. Testar manipulação da função stat de forma mais inteligente
+     echo $bold . $azul . "[+] Testando manipulação da função stat...\n";
+     
+     // Criar um arquivo temporário e verificar se o stat retorna dados consistentes
+     $arquivoTeste = '/data/local/tmp/test_stat_' . time();
+     $comandoCriarArquivo = 'adb shell "echo test > ' . $arquivoTeste . ' 2>/dev/null"';
+     shell_exec($comandoCriarArquivo);
+     
+     // Aguardar um momento e verificar o stat
+     sleep(1);
+     $comandoStatTeste = 'adb shell "stat ' . $arquivoTeste . ' 2>/dev/null"';
+     $resultadoStatTeste = shell_exec($comandoStatTeste);
+     
+     if (!empty($resultadoStatTeste)) {
+         // Verificar se as datas são consistentes (Access, Modify, Change devem ser próximas)
+         preg_match('/Access: (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/', $resultadoStatTeste, $matchAccess);
+         preg_match('/Modify: (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/', $resultadoStatTeste, $matchModify);
+         preg_match('/Change: (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/', $resultadoStatTeste, $matchChange);
+         
+         if ($matchAccess && $matchModify && $matchChange) {
+             $timestampAccess = strtotime($matchAccess[1]);
+             $timestampModify = strtotime($matchModify[1]);
+             $timestampChange = strtotime($matchChange[1]);
+             $timestampAtual = time();
+             
+             // Se as datas forem muito antigas ou inconsistentes, é suspeito
+             $diferencaAtual = abs($timestampAtual - $timestampModify);
+             $diferencaInterna = abs($timestampAccess - $timestampModify);
+             
+             if ($diferencaAtual > 3600 || $diferencaInterna > 60) { // Mais de 1 hora ou diferença interna > 1 min
+                 echo $bold . $vermelho . "[!] BYPASS DETECTADO: Função stat retornando dados inconsistentes!\n";
+                 echo $bold . $amarelo . "[!] Arquivo criado agora, mas stat mostra: " . $matchModify[1] . "\n";
+                 $bypassDetectado = true;
+             }
+         }
+     }
+     
+     // Limpar arquivo de teste
+     shell_exec('adb shell "rm -f ' . $arquivoTeste . ' 2>/dev/null"');
+     
+     // Teste adicional: verificar se stat de um caminho conhecido retorna dados suspeitos
+     $caminhoMReplays = '/storage/emulated/0/Android/data/com.dts.freefireth/files/MReplays';
+     $comandoStatMReplays = 'adb shell "stat ' . escapeshellarg($caminhoMReplays) . ' 2>/dev/null"';
+     $resultadoStatMReplays = shell_exec($comandoStatMReplays);
+     
+     if (!empty($resultadoStatMReplays) && preg_match('/Modify: (\d{4}-\d{2}-\d{2})/', $resultadoStatMReplays, $matches)) {
+         $dataModify = $matches[1];
+         // Se a data for exatamente 2020-01-01 ou muito antiga, é suspeito
+         if ($dataModify === '2020-01-01' || strtotime($dataModify) < strtotime('2021-01-01')) {
+             echo $bold . $vermelho . "[!] BYPASS DETECTADO: Stat retornando data suspeita para MReplays!\n";
+             echo $bold . $amarelo . "[!] Data suspeita: $dataModify\n";
+             $bypassDetectado = true;
+         }
+     }
+    
+    // 4. Testar comportamento do comando cd
+     echo $bold . $azul . "[+] Testando comportamento do comando cd...\n";
+     
+     // Testar se cd está sendo interceptado
+     $comandoTestCd = 'adb shell "cd /tmp 2>/dev/null || cd /data/local/tmp; pwd; cd /; pwd"';
+     $resultadoTestCd = shell_exec($comandoTestCd);
+     
+     // Se cd não funcionar normalmente, pode estar sendo interceptado
+     if (empty($resultadoTestCd) || strpos($resultadoTestCd, '/') === false) {
+         echo $bold . $vermelho . "[!] BYPASS DETECTADO: Comando cd não está funcionando normalmente!\n";
+         echo $bold . $amarelo . "[!] Resposta: " . trim($resultadoTestCd) . "\n";
+         $bypassDetectado = true;
+     }
+     
+     // 5. Verificar se comandos básicos retornam respostas esperadas
+     echo $bold . $azul . "[+] Testando integridade de comandos básicos...\n";
+     
+     $testesComandos = [
+         'which' => ['adb shell "which ls 2>/dev/null"', '/system/bin/ls'],
+         'echo' => ['adb shell "echo test123"', 'test123'],
+         'date' => ['adb shell "date +%Y 2>/dev/null"', date('Y')]
+     ];
+     
+     foreach ($testesComandos as $comando => $teste) {
+         $resultado = trim(shell_exec($teste[0]));
+         if (empty($resultado) || strpos($resultado, $teste[1]) === false) {
+             echo $bold . $vermelho . "[!] BYPASS DETECTADO: Comando '$comando' não retorna resposta esperada!\n";
+             echo $bold . $amarelo . "[!] Esperado: {$teste[1]}, Recebido: $resultado\n";
+             $bypassDetectado = true;
+         }
+     }
+    
+    // 5. Verificar bloqueio de comandos pkg
+    echo $bold . $azul . "[+] Testando bloqueio de comandos pkg...\n";
+    $comandoTestPkg = 'adb shell "echo \"pkg install com.dts.freefireth\" | bash 2>&1"';
+    $resultadoTestPkg = shell_exec($comandoTestPkg);
+    
+    if (strpos($resultadoTestPkg, 'Comando bloqueado') !== false || 
+        strpos($resultadoTestPkg, 'blocked') !== false) {
+        echo $bold . $vermelho . "[!] BYPASS DETECTADO: Bloqueio de comandos pkg ativo!\n";
+        echo $bold . $amarelo . "[!] Resposta do sistema: " . trim($resultadoTestPkg) . "\n";
+        $bypassDetectado = true;
+    }
+    
+    // 6. Verificar arquivos de bypass de forma mais abrangente
+     echo $bold . $azul . "[+] Verificando arquivos de bypass no dispositivo...\n";
+     
+     // Buscar por arquivos .sh com conteúdo suspeito
+     $comandoArquivosBypass = 'adb shell "find /sdcard /data/local/tmp /data/data/com.termux/files/home -name \"*.sh\" -exec grep -l \"function pkg\\|function git\\|function cd\\|function stat\\|function adb\\|wendell77x\\|FAKE_ADB_SHELL\" {} \\; 2>/dev/null | head -10"';
+     $resultadoArquivosBypass = shell_exec($comandoArquivosBypass);
+     
+     if (!empty(trim($resultadoArquivosBypass))) {
+         echo $bold . $vermelho . "[!] BYPASS DETECTADO: Arquivos de bypass encontrados!\n";
+         echo $bold . $amarelo . "[!] Arquivos suspeitos:\n" . trim($resultadoArquivosBypass) . "\n";
+         $bypassDetectado = true;
+     }
+     
+     // Verificar arquivos com nomes suspeitos
+     $comandoNomesSuspeitos = 'adb shell "find /sdcard /data/local/tmp /data/data/com.termux/files/home -name \"*block*\" -o -name \"*redirect*\" -o -name \"*bypass*\" -o -name \"*install*\" -o -name \"*hack*\" 2>/dev/null | head -10"';
+     $resultadoNomesSuspeitos = shell_exec($comandoNomesSuspeitos);
+     
+     if (!empty(trim($resultadoNomesSuspeitos))) {
+         echo $bold . $vermelho . "[!] BYPASS DETECTADO: Arquivos com nomes suspeitos encontrados!\n";
+         echo $bold . $amarelo . "[!] Arquivos encontrados:\n" . trim($resultadoNomesSuspeitos) . "\n";
+         $bypassDetectado = true;
+     }
+    
+    // Resultado final
+    if ($bypassDetectado) {
+        echo $bold . $vermelho . "\n[!] ========== ATENÇÃO ==========\n";
+        echo $bold . $vermelho . "[!] BYPASS DE FUNÇÕES SHELL DETECTADO!\n";
+        echo $bold . $vermelho . "[!] O usuário está utilizando scripts maliciosos!\n";
+        echo $bold . $vermelho . "[!] APLIQUE O W.O IMEDIATAMENTE!\n";
+        echo $bold . $vermelho . "[!] ==============================\n\n";
+    } else {
+        echo $bold . $fverde . "[i] Nenhum bypass de funções shell detectado.\n\n";
+    }
+}
+
 function inputusuario($message){
   global $branco, $bold, $verdebg, $vermelhobg, $azulbg, $cln, $lazul, $fverde;
   $amarelobg = "\e[100m";
@@ -215,6 +467,9 @@ escolheropcoes:
             shell_exec($comandoKillBash);
             echo $bold . $fverde . "[i] Sessões desnecessárias finalizadas.\n\n";
 
+            // Detecção de Bypass de Funções Shell
+            echo $bold . $azul . "[+] Verificando bypasses de funções shell...\n";
+            detectarBypassShell();
 
             echo $bold . $azul . "[+] Checando se o dispositivo foi reiniciado recentemente...\n";
             $comandoUPTIME = shell_exec("adb shell uptime");
@@ -837,6 +1092,67 @@ escolheropcoes:
                             }
                         }
                     }
+
+                    // Verificação adicional de timestamps para detecção de bypass
+                    $streamoptional_path = '/sdcard/android/data/com.dts.freefireth/files/contentcache/optional/streamoptional';
+                    $out_stream = shell_exec('adb shell stat ' . escapeshellarg($streamoptional_path) . ' 2>&1');
+                    $stat_stream = array();
+                    
+                    if (strpos($out_stream, 'File:') !== false) {
+                        if (preg_match('/Access:\s*(\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}(?:\.\d+)?)/', $out_stream, $mm)) {
+                            $stat_stream['Access'] = $mm[1];
+                        }
+                        if (preg_match('/Modify:\s*(\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}(?:\.\d+)?)/', $out_stream, $mm2)) {
+                            $stat_stream['Modify'] = $mm2[1];
+                        }
+                        if (preg_match('/Change:\s*(\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}(?:\.\d+)?)/', $out_stream, $mm3)) {
+                            $stat_stream['Change'] = $mm3[1];
+                        }
+                    }
+
+                    $stream_ns = array('Access' => null, 'Modify' => null, 'Change' => null);
+                    foreach (array('Access', 'Modify', 'Change') as $k) {
+                        if (isset($stat_stream[$k]) && preg_match('/\.(\d+)$/', $stat_stream[$k], $fr)) {
+                            $frac = str_pad($fr[1], 9, '0', STR_PAD_RIGHT);
+                            $stream_ns[$k] = substr($frac, -3);
+                        }
+                    }
+
+                    $out_shader = shell_exec('adb shell stat ' . escapeshellarg($arquivo) . ' 2>&1');
+                    $stat_shader = array();
+                    
+                    if (strpos($out_shader, 'File:') !== false) {
+                        if (preg_match('/Access:\s*(\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}(?:\.\d+)?)/', $out_shader, $mm)) {
+                            $stat_shader['Access'] = $mm[1];
+                        }
+                        if (preg_match('/Modify:\s*(\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}(?:\.\d+)?)/', $out_shader, $mm2)) {
+                            $stat_shader['Modify'] = $mm2[1];
+                        }
+                        if (preg_match('/Change:\s*(\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}(?:\.\d+)?)/', $out_shader, $mm3)) {
+                            $stat_shader['Change'] = $mm3[1];
+                        }
+                    }
+
+                    $shader_ns = array('Access' => null, 'Modify' => null, 'Change' => null);
+                    foreach (array('Access', 'Modify', 'Change') as $k) {
+                        if (isset($stat_shader[$k]) && preg_match('/\.(\d+)$/', $stat_shader[$k], $fr)) {
+                            $frac2 = str_pad($fr[1], 9, '0', STR_PAD_RIGHT);
+                            $shader_ns[$k] = substr($frac2, -3);
+                        }
+                    }
+
+                    if ($stream_ns['Access'] !== null && $stream_ns['Modify'] !== null && $stream_ns['Change'] !== null
+                        && $shader_ns['Access'] !== null && $shader_ns['Modify'] !== null && $shader_ns['Change'] !== null) {
+
+                        if ($stream_ns['Access'] === $shader_ns['Access'] &&
+                            $stream_ns['Modify'] === $shader_ns['Modify'] &&
+                            $stream_ns['Change'] === $shader_ns['Change']) {
+                            // Timestamps coincidem - comportamento normal
+                        } else {
+                            echo $bold . $vermelho . "[!] BYPASS DE HOLOGRAMA DETECTADO - timestamps NÃO COINCIDEM\n";
+                            echo $bold . $amarelo . "Arquivo(s) inconsistentes com o jogo original — aplique o W.O!\n\n";
+                        }
+                    }
                 } else {
                     echo $bold . $amarelo . "[i] Nenhum arquivo de shader encontrado.\n";
                 }
@@ -1255,6 +1571,9 @@ escolheropcoes:
             shell_exec($comandoKillBash);
             echo $bold . $fverde . "[i] Sessões desnecessárias finalizadas.\n\n";
 
+            // Detecção de Bypass de Funções Shell
+            echo $bold . $azul . "[+] Verificando bypasses de funções shell...\n";
+            detectarBypassShell();
 
             echo $bold . $azul . "[+] Checando se o dispositivo foi reiniciado recentemente...\n";
             $comandoUPTIME = shell_exec("adb shell uptime");
@@ -1875,6 +2194,67 @@ escolheropcoes:
                                     echo $bold . $vermelho . "[!] Verifique se a data é após a partida, se sim aplique o W.O!\n\n";
                                 }
                             }
+                        }
+                    }
+
+                    // Verificação adicional de timestamps para detecção de bypass
+                    $streamoptional_path = '/sdcard/android/data/com.dts.freefiremax/files/contentcache/optional/streamoptional';
+                    $out_stream = shell_exec('adb shell stat ' . escapeshellarg($streamoptional_path) . ' 2>&1');
+                    $stat_stream = array();
+                    
+                    if (strpos($out_stream, 'File:') !== false) {
+                        if (preg_match('/Access:\s*(\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}(?:\.\d+)?)/', $out_stream, $mm)) {
+                            $stat_stream['Access'] = $mm[1];
+                        }
+                        if (preg_match('/Modify:\s*(\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}(?:\.\d+)?)/', $out_stream, $mm2)) {
+                            $stat_stream['Modify'] = $mm2[1];
+                        }
+                        if (preg_match('/Change:\s*(\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}(?:\.\d+)?)/', $out_stream, $mm3)) {
+                            $stat_stream['Change'] = $mm3[1];
+                        }
+                    }
+
+                    $stream_ns = array('Access' => null, 'Modify' => null, 'Change' => null);
+                    foreach (array('Access', 'Modify', 'Change') as $k) {
+                        if (isset($stat_stream[$k]) && preg_match('/\.(\d+)$/', $stat_stream[$k], $fr)) {
+                            $frac = str_pad($fr[1], 9, '0', STR_PAD_RIGHT);
+                            $stream_ns[$k] = substr($frac, -3);
+                        }
+                    }
+
+                    $out_shader = shell_exec('adb shell stat ' . escapeshellarg($arquivo) . ' 2>&1');
+                    $stat_shader = array();
+                    
+                    if (strpos($out_shader, 'File:') !== false) {
+                        if (preg_match('/Access:\s*(\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}(?:\.\d+)?)/', $out_shader, $mm)) {
+                            $stat_shader['Access'] = $mm[1];
+                        }
+                        if (preg_match('/Modify:\s*(\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}(?:\.\d+)?)/', $out_shader, $mm2)) {
+                            $stat_shader['Modify'] = $mm2[1];
+                        }
+                        if (preg_match('/Change:\s*(\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}(?:\.\d+)?)/', $out_shader, $mm3)) {
+                            $stat_shader['Change'] = $mm3[1];
+                        }
+                    }
+
+                    $shader_ns = array('Access' => null, 'Modify' => null, 'Change' => null);
+                    foreach (array('Access', 'Modify', 'Change') as $k) {
+                        if (isset($stat_shader[$k]) && preg_match('/\.(\d+)$/', $stat_shader[$k], $fr)) {
+                            $frac2 = str_pad($fr[1], 9, '0', STR_PAD_RIGHT);
+                            $shader_ns[$k] = substr($frac2, -3);
+                        }
+                    }
+
+                    if ($stream_ns['Access'] !== null && $stream_ns['Modify'] !== null && $stream_ns['Change'] !== null
+                        && $shader_ns['Access'] !== null && $shader_ns['Modify'] !== null && $shader_ns['Change'] !== null) {
+
+                        if ($stream_ns['Access'] === $shader_ns['Access'] &&
+                            $stream_ns['Modify'] === $shader_ns['Modify'] &&
+                            $stream_ns['Change'] === $shader_ns['Change']) {
+                            // Timestamps coincidem - comportamento normal
+                        } else {
+                            echo $bold . $vermelho . "[!] BYPASS DE HOLOGRAMA DETECTADO - timestamps NÃO COINCIDEM\n";
+                            echo $bold . $amarelo . "Arquivo(s) inconsistentes com o jogo original — aplique o W.O!\n\n";
                         }
                     }
                 } else {
