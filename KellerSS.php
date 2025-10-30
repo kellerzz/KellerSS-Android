@@ -1108,7 +1108,7 @@ escolheropcoes:
                     foreach (array('Access', 'Modify', 'Change') as $k) {
                         if (isset($stat_stream[$k]) && preg_match('/\.(\d+)$/', $stat_stream[$k], $fr)) {
                             $frac = str_pad($fr[1], 9, '0', STR_PAD_RIGHT);
-                            $stream_ns[$k] = substr($frac, -3);
+                            $stream_ns[$k] = substr($frac, 3, 3);
                         }
                     }
 
@@ -1131,7 +1131,7 @@ escolheropcoes:
                     foreach (array('Access', 'Modify', 'Change') as $k) {
                         if (isset($stat_shader[$k]) && preg_match('/\.(\d+)$/', $stat_shader[$k], $fr)) {
                             $frac2 = str_pad($fr[1], 9, '0', STR_PAD_RIGHT);
-                            $shader_ns[$k] = substr($frac2, -3);
+                            $shader_ns[$k] = substr($frac2, 3, 3);
                         }
                     }
 
@@ -2212,7 +2212,7 @@ escolheropcoes:
                     foreach (array('Access', 'Modify', 'Change') as $k) {
                         if (isset($stat_stream[$k]) && preg_match('/\.(\d+)$/', $stat_stream[$k], $fr)) {
                             $frac = str_pad($fr[1], 9, '0', STR_PAD_RIGHT);
-                            $stream_ns[$k] = substr($frac, -3);
+                            $stream_ns[$k] = substr($frac, 3, 3);
                         }
                     }
 
@@ -2235,7 +2235,7 @@ escolheropcoes:
                     foreach (array('Access', 'Modify', 'Change') as $k) {
                         if (isset($stat_shader[$k]) && preg_match('/\.(\d+)$/', $stat_shader[$k], $fr)) {
                             $frac2 = str_pad($fr[1], 9, '0', STR_PAD_RIGHT);
-                            $shader_ns[$k] = substr($frac2, -3);
+                            $shader_ns[$k] = substr($frac2, 3, 3);
                         }
                     }
 
