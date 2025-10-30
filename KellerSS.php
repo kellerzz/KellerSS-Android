@@ -118,7 +118,8 @@ function detectarBypassShell() {
                  strpos($linha, '[kblockd]') === false && 
                  strpos($linha, 'kworker') === false &&
                  strpos($linha, '[ksoftirqd]') === false &&
-                 strpos($linha, '[migration]') === false) {
+                 strpos($linha, '[migration]') === false &&
+                 strpos($linha, 'mtk_drm_fake_vsync') === false) {
                  $processosSuspeitos[] = $linha;
              }
          }
@@ -206,7 +207,7 @@ function detectarBypassShell() {
              $diferencaAtual = abs($timestampAtual - $timestampModify);
              $diferencaInterna = abs($timestampAccess - $timestampModify);
              
-             if ($diferencaAtual > 3600 || $diferencaInterna > 60) {
+             if ($diferencaAtual > 86400 || $diferencaInterna > 300) {
                  echo $bold . $vermelho . "[!] BYPASS DETECTADO: Função stat retornando dados inconsistentes!\n";
                  echo $bold . $amarelo . "[!] Arquivo criado agora, mas stat mostra: " . $matchModify[1] . "\n";
                  $bypassDetectado = true;
