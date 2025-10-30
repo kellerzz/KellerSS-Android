@@ -58,10 +58,8 @@ function detectarBypassShell() {
     
     $bypassDetectado = false;
     
-    // 1. Verificar funções maliciosas no ambiente atual (independente do arquivo)
     echo $bold . $azul . "[+] Verificando funções maliciosas no ambiente shell...\n";
     
-    // Testar se as funções estão ativas no ambiente atual
     $funcoesTeste = [
         'pkg' => 'adb shell "type pkg 2>/dev/null | grep -q function && echo FUNCTION_DETECTED"',
         'git' => 'adb shell "type git 2>/dev/null | grep -q function && echo FUNCTION_DETECTED"', 
@@ -72,12 +70,11 @@ function detectarBypassShell() {
     
     foreach ($funcoesTeste as $funcao => $comando) {
         $resultado = shell_exec($comando);
-        if (strpos($resultado, 'FUNCTION_DETECTED') !== false) {
+        if ($resultado !== null && strpos($resultado, 'FUNCTION_DETECTED') !== false) {
             echo $bold . $vermelho . "[!] BYPASS DETECTADO: Função '$funcao' foi sobrescrita!\n";
             $bypassDetectado = true;
         }
      
-     // 6. Teste final de integridade - verificar se conseguimos acessar diretórios críticos
      echo $bold . $azul . "[+] Testando acesso a diretórios críticos...\n";
      
      $diretoriosCriticos = [
@@ -91,30 +88,49 @@ function detectarBypassShell() {
          $comandoTestDir = 'adb shell "ls -la \"' . $diretorio . '\" 2>/dev/null | head -3"';
          $resultadoTestDir = shell_exec($comandoTestDir);
          
-         // Se não conseguir listar ou retornar algo suspeito
-         if (empty(trim($resultadoTestDir)) || 
-             strpos($resultadoTestDir, 'Permission denied') !== false ||
-             strpos($resultadoTestDir, 'blocked') !== false ||
-             strpos($resultadoTestDir, 'redirected') !== false) {
+         if (empty($resultadoTestDir) || trim($resultadoTestDir ?? '') === '' || 
+             ($resultadoTestDir !== null && strpos($resultadoTestDir, 'Permission denied') !== false) ||
+             ($resultadoTestDir !== null && strpos($resultadoTestDir, 'blocked') !== false) ||
+             ($resultadoTestDir !== null && strpos($resultadoTestDir, 'redirected') !== false)) {
              
-             echo $bold . $amarelo . "[!] Acesso suspeito ao diretório: $diretorio\n";
+             if (($resultadoTestDir !== null && strpos($resultadoTestDir, 'blocked') !== false) ||
+                 ($resultadoTestDir !== null && strpos($resultadoTestDir, 'redirected') !== false) ||
+                 ($resultadoTestDir !== null && strpos($resultadoTestDir, 'bypass') !== false)) {
+                 
+                 echo $bold . $vermelho . "[!] BYPASS DETECTADO: Acesso bloqueado/redirecionado ao diretório: $diretorio\n";
+                 echo $bold . $amarelo . "[!] Resposta: " . trim($resultadoTestDir ?? '') . "\n";
+                 $bypassDetectado = true;
+             }
          }
      }
      
-     // 7. Verificar se há processos suspeitos rodando
      echo $bold . $azul . "[+] Verificando processos suspeitos...\n";
      
-     $comandoProcessos = 'adb shell "ps | grep -E \"(bypass|block|redirect|fake)\" 2>/dev/null"';
+     $comandoProcessos = 'adb shell "ps | grep -E \"(bypass|redirect|fake)\" 2>/dev/null"';
      $resultadoProcessos = shell_exec($comandoProcessos);
      
-     if (!empty(trim($resultadoProcessos))) {
-         echo $bold . $vermelho . "[!] BYPASS DETECTADO: Processos suspeitos em execução!\n";
-         echo $bold . $amarelo . "[!] Processos encontrados:\n" . trim($resultadoProcessos) . "\n";
-         $bypassDetectado = true;
+     if ($resultadoProcessos !== null && !empty(trim($resultadoProcessos))) {
+         $linhasProcessos = explode("\n", trim($resultadoProcessos));
+         $processosSuspeitos = [];
+         
+         foreach ($linhasProcessos as $linha) {
+             if (!empty(trim($linha)) && 
+                 strpos($linha, '[kblockd]') === false && 
+                 strpos($linha, 'kworker') === false &&
+                 strpos($linha, '[ksoftirqd]') === false &&
+                 strpos($linha, '[migration]') === false) {
+                 $processosSuspeitos[] = $linha;
+             }
+         }
+         
+         if (!empty($processosSuspeitos)) {
+             echo $bold . $vermelho . "[!] BYPASS DETECTADO: Processos suspeitos em execução!\n";
+             echo $bold . $amarelo . "[!] Processos encontrados:\n" . implode("\n", $processosSuspeitos) . "\n";
+             $bypassDetectado = true;
+         }
      }
     }
     
-    // Verificar arquivos de configuração comuns
     echo $bold . $azul . "[+] Verificando arquivos de configuração...\n";
     $arquivosConfig = [
         '~/.bashrc', '~/.bash_profile', '~/.profile', '~/.zshrc', 
@@ -125,23 +141,19 @@ function detectarBypassShell() {
         $comandoVerificar = 'adb shell "if [ -f ' . $arquivo . ' ]; then cat ' . $arquivo . ' | grep -E \"(function pkg|function git|function cd|function stat|function adb)\" 2>/dev/null; fi"';
         $resultadoArquivo = shell_exec($comandoVerificar);
         
-        if (!empty(trim($resultadoArquivo))) {
+        if ($resultadoArquivo !== null && !empty(trim($resultadoArquivo))) {
             echo $bold . $vermelho . "[!] BYPASS DETECTADO: Funções maliciosas em $arquivo!\n";
             echo $bold . $amarelo . "[!] Conteúdo detectado:\n" . trim($resultadoArquivo) . "\n";
             $bypassDetectado = true;
         }
     }
     
-    // 2. Testar comportamento real das funções (mais eficaz que procurar variáveis)
      echo $bold . $azul . "[+] Testando comportamento real das funções...\n";
      
-     // Teste 1: Verificar se git clone está sendo redirecionado
      $comandoTestGitReal = 'adb shell "cd /tmp 2>/dev/null || cd /data/local/tmp; git clone --help 2>&1 | head -1"';
      $resultadoGitHelp = shell_exec($comandoTestGitReal);
      
-     // Se o git clone não mostrar a ajuda normal, pode estar sendo interceptado
      if (empty($resultadoGitHelp) || strpos($resultadoGitHelp, 'usage: git') === false) {
-         // Teste mais direto: tentar clonar e ver se há redirecionamento
          $comandoTestClone = 'adb shell "cd /tmp 2>/dev/null || cd /data/local/tmp; timeout 5 git clone https://github.com/kellerzz/KellerSS-Android test-repo 2>&1 | head -3"';
          $resultadoClone = shell_exec($comandoTestClone);
          
@@ -154,7 +166,6 @@ function detectarBypassShell() {
          }
      }
      
-     // Teste 2: Verificar se pkg install está sendo bloqueado
      $comandoTestPkgReal = 'adb shell "pkg --help 2>&1 | head -1"';
      $resultadoPkgHelp = shell_exec($comandoTestPkgReal);
      
@@ -171,21 +182,17 @@ function detectarBypassShell() {
          }
      }
     
-    // 3. Testar manipulação da função stat de forma mais inteligente
      echo $bold . $azul . "[+] Testando manipulação da função stat...\n";
      
-     // Criar um arquivo temporário e verificar se o stat retorna dados consistentes
      $arquivoTeste = '/data/local/tmp/test_stat_' . time();
      $comandoCriarArquivo = 'adb shell "echo test > ' . $arquivoTeste . ' 2>/dev/null"';
      shell_exec($comandoCriarArquivo);
      
-     // Aguardar um momento e verificar o stat
      sleep(1);
      $comandoStatTeste = 'adb shell "stat ' . $arquivoTeste . ' 2>/dev/null"';
      $resultadoStatTeste = shell_exec($comandoStatTeste);
      
      if (!empty($resultadoStatTeste)) {
-         // Verificar se as datas são consistentes (Access, Modify, Change devem ser próximas)
          preg_match('/Access: (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/', $resultadoStatTeste, $matchAccess);
          preg_match('/Modify: (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/', $resultadoStatTeste, $matchModify);
          preg_match('/Change: (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/', $resultadoStatTeste, $matchChange);
@@ -196,11 +203,10 @@ function detectarBypassShell() {
              $timestampChange = strtotime($matchChange[1]);
              $timestampAtual = time();
              
-             // Se as datas forem muito antigas ou inconsistentes, é suspeito
              $diferencaAtual = abs($timestampAtual - $timestampModify);
              $diferencaInterna = abs($timestampAccess - $timestampModify);
              
-             if ($diferencaAtual > 3600 || $diferencaInterna > 60) { // Mais de 1 hora ou diferença interna > 1 min
+             if ($diferencaAtual > 3600 || $diferencaInterna > 60) {
                  echo $bold . $vermelho . "[!] BYPASS DETECTADO: Função stat retornando dados inconsistentes!\n";
                  echo $bold . $amarelo . "[!] Arquivo criado agora, mas stat mostra: " . $matchModify[1] . "\n";
                  $bypassDetectado = true;
@@ -208,17 +214,14 @@ function detectarBypassShell() {
          }
      }
      
-     // Limpar arquivo de teste
      shell_exec('adb shell "rm -f ' . $arquivoTeste . ' 2>/dev/null"');
      
-     // Teste adicional: verificar se stat de um caminho conhecido retorna dados suspeitos
      $caminhoMReplays = '/storage/emulated/0/Android/data/com.dts.freefireth/files/MReplays';
      $comandoStatMReplays = 'adb shell "stat ' . escapeshellarg($caminhoMReplays) . ' 2>/dev/null"';
      $resultadoStatMReplays = shell_exec($comandoStatMReplays);
      
      if (!empty($resultadoStatMReplays) && preg_match('/Modify: (\d{4}-\d{2}-\d{2})/', $resultadoStatMReplays, $matches)) {
          $dataModify = $matches[1];
-         // Se a data for exatamente 2020-01-01 ou muito antiga, é suspeito
          if ($dataModify === '2020-01-01' || strtotime($dataModify) < strtotime('2021-01-01')) {
              echo $bold . $vermelho . "[!] BYPASS DETECTADO: Stat retornando data suspeita para MReplays!\n";
              echo $bold . $amarelo . "[!] Data suspeita: $dataModify\n";
@@ -226,21 +229,17 @@ function detectarBypassShell() {
          }
      }
     
-    // 4. Testar comportamento do comando cd
      echo $bold . $azul . "[+] Testando comportamento do comando cd...\n";
      
-     // Testar se cd está sendo interceptado
      $comandoTestCd = 'adb shell "cd /tmp 2>/dev/null || cd /data/local/tmp; pwd; cd /; pwd"';
      $resultadoTestCd = shell_exec($comandoTestCd);
      
-     // Se cd não funcionar normalmente, pode estar sendo interceptado
      if (empty($resultadoTestCd) || strpos($resultadoTestCd, '/') === false) {
          echo $bold . $vermelho . "[!] BYPASS DETECTADO: Comando cd não está funcionando normalmente!\n";
          echo $bold . $amarelo . "[!] Resposta: " . trim($resultadoTestCd) . "\n";
          $bypassDetectado = true;
      }
      
-     // 5. Verificar se comandos básicos retornam respostas esperadas
      echo $bold . $azul . "[+] Testando integridade de comandos básicos...\n";
      
      $testesComandos = [
@@ -258,7 +257,6 @@ function detectarBypassShell() {
          }
      }
     
-    // 5. Verificar bloqueio de comandos pkg
     echo $bold . $azul . "[+] Testando bloqueio de comandos pkg...\n";
     $comandoTestPkg = 'adb shell "echo \"pkg install com.dts.freefireth\" | bash 2>&1"';
     $resultadoTestPkg = shell_exec($comandoTestPkg);
@@ -270,30 +268,26 @@ function detectarBypassShell() {
         $bypassDetectado = true;
     }
     
-    // 6. Verificar arquivos de bypass de forma mais abrangente
      echo $bold . $azul . "[+] Verificando arquivos de bypass no dispositivo...\n";
      
-     // Buscar por arquivos .sh com conteúdo suspeito
      $comandoArquivosBypass = 'adb shell "find /sdcard /data/local/tmp /data/data/com.termux/files/home -name \"*.sh\" -exec grep -l \"function pkg\\|function git\\|function cd\\|function stat\\|function adb\\|wendell77x\\|FAKE_ADB_SHELL\" {} \\; 2>/dev/null | head -10"';
      $resultadoArquivosBypass = shell_exec($comandoArquivosBypass);
      
-     if (!empty(trim($resultadoArquivosBypass))) {
+     if ($resultadoArquivosBypass !== null && !empty(trim($resultadoArquivosBypass))) {
          echo $bold . $vermelho . "[!] BYPASS DETECTADO: Arquivos de bypass encontrados!\n";
          echo $bold . $amarelo . "[!] Arquivos suspeitos:\n" . trim($resultadoArquivosBypass) . "\n";
          $bypassDetectado = true;
      }
      
-     // Verificar arquivos com nomes suspeitos
      $comandoNomesSuspeitos = 'adb shell "find /sdcard /data/local/tmp /data/data/com.termux/files/home -name \"*block*\" -o -name \"*redirect*\" -o -name \"*bypass*\" -o -name \"*install*\" -o -name \"*hack*\" 2>/dev/null | head -10"';
      $resultadoNomesSuspeitos = shell_exec($comandoNomesSuspeitos);
      
-     if (!empty(trim($resultadoNomesSuspeitos))) {
+     if ($resultadoNomesSuspeitos !== null && !empty(trim($resultadoNomesSuspeitos))) {
          echo $bold . $vermelho . "[!] BYPASS DETECTADO: Arquivos com nomes suspeitos encontrados!\n";
          echo $bold . $amarelo . "[!] Arquivos encontrados:\n" . trim($resultadoNomesSuspeitos) . "\n";
          $bypassDetectado = true;
      }
     
-    // Resultado final
     if ($bypassDetectado) {
         echo $bold . $vermelho . "\n[!] ========== ATENÇÃO ==========\n";
         echo $bold . $vermelho . "[!] BYPASS DE FUNÇÕES SHELL DETECTADO!\n";
