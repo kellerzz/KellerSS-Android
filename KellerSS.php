@@ -67,6 +67,7 @@ function detectarBypassShell() {
         'stat' => 'adb shell "type stat 2>/dev/null | grep -q function && echo FUNCTION_DETECTED"',
         'adb' => 'adb shell "type adb 2>/dev/null | grep -q function && echo FUNCTION_DETECTED"'
     ];
+    $executouChecksExtra = false;
     
     foreach ($funcoesTeste as $funcao => $comando) {
         $resultado = shell_exec($comando);
@@ -75,60 +76,63 @@ function detectarBypassShell() {
             $bypassDetectado = true;
         }
      
-     echo $bold . $azul . "[+] Testando acesso a diretórios críticos...\n";
-     
-     $diretoriosCriticos = [
-         '/system/bin',
-         '/data/data/com.dts.freefireth/files',
-         '/data/data/com.dts.freefiremax/files',
-         '/storage/emulated/0/Android/data'
-     ];
-     
-     foreach ($diretoriosCriticos as $diretorio) {
-         $comandoTestDir = 'adb shell "ls -la \"' . $diretorio . '\" 2>/dev/null | head -3"';
-         $resultadoTestDir = shell_exec($comandoTestDir);
+     if (!$executouChecksExtra) {
+         echo $bold . $azul . "[+] Testando acesso a diretórios críticos...\n";
          
-         if (empty($resultadoTestDir) || trim($resultadoTestDir ?? '') === '' || 
-             ($resultadoTestDir !== null && strpos($resultadoTestDir, 'Permission denied') !== false) ||
-             ($resultadoTestDir !== null && strpos($resultadoTestDir, 'blocked') !== false) ||
-             ($resultadoTestDir !== null && strpos($resultadoTestDir, 'redirected') !== false)) {
+         $diretoriosCriticos = [
+             '/system/bin',
+             '/data/data/com.dts.freefireth/files',
+             '/data/data/com.dts.freefiremax/files',
+             '/storage/emulated/0/Android/data'
+         ];
+         
+         foreach ($diretoriosCriticos as $diretorio) {
+             $comandoTestDir = 'adb shell "ls -la \"' . $diretorio . '\" 2>/dev/null | head -3"';
+             $resultadoTestDir = shell_exec($comandoTestDir);
              
-             if (($resultadoTestDir !== null && strpos($resultadoTestDir, 'blocked') !== false) ||
-                 ($resultadoTestDir !== null && strpos($resultadoTestDir, 'redirected') !== false) ||
-                 ($resultadoTestDir !== null && strpos($resultadoTestDir, 'bypass') !== false)) {
+             if (empty($resultadoTestDir) || trim($resultadoTestDir ?? '') === '' || 
+                 ($resultadoTestDir !== null && strpos($resultadoTestDir, 'Permission denied') !== false) ||
+                 ($resultadoTestDir !== null && strpos($resultadoTestDir, 'blocked') !== false) ||
+                 ($resultadoTestDir !== null && strpos($resultadoTestDir, 'redirected') !== false)) {
                  
-                 echo $bold . $vermelho . "[!] BYPASS DETECTADO: Acesso bloqueado/redirecionado ao diretório: $diretorio\n";
-                 echo $bold . $amarelo . "[!] Resposta: " . trim($resultadoTestDir ?? '') . "\n";
+                 if (($resultadoTestDir !== null && strpos($resultadoTestDir, 'blocked') !== false) ||
+                     ($resultadoTestDir !== null && strpos($resultadoTestDir, 'redirected') !== false) ||
+                     ($resultadoTestDir !== null && strpos($resultadoTestDir, 'bypass') !== false)) {
+                     
+                     echo $bold . $vermelho . "[!] BYPASS DETECTADO: Acesso bloqueado/redirecionado ao diretório: $diretorio\n";
+                     echo $bold . $amarelo . "[!] Resposta: " . trim($resultadoTestDir ?? '') . "\n";
+                     $bypassDetectado = true;
+                 }
+             }
+         }
+         
+         echo $bold . $azul . "[+] Verificando processos suspeitos...\n";
+         
+         $comandoProcessos = 'adb shell "ps | grep -E \"(bypass|redirect|fake)\" 2>/dev/null"';
+         $resultadoProcessos = shell_exec($comandoProcessos);
+         
+         if ($resultadoProcessos !== null && !empty(trim($resultadoProcessos))) {
+             $linhasProcessos = explode("\n", trim($resultadoProcessos));
+             $processosSuspeitos = [];
+             
+             foreach ($linhasProcessos as $linha) {
+                 if (!empty(trim($linha)) && 
+                     strpos($linha, '[kblockd]') === false && 
+                     strpos($linha, 'kworker') === false &&
+                     strpos($linha, '[ksoftirqd]') === false &&
+                     strpos($linha, '[migration]') === false &&
+                     strpos($linha, 'mtk_drm_fake_vsync') === false) {
+                     $processosSuspeitos[] = $linha;
+                 }
+             }
+             
+             if (!empty($processosSuspeitos)) {
+                 echo $bold . $vermelho . "[!] BYPASS DETECTADO: Processos suspeitos em execução!\n";
+                 echo $bold . $amarelo . "[!] Processos encontrados:\n" . implode("\n", $processosSuspeitos) . "\n";
                  $bypassDetectado = true;
              }
          }
-     }
-     
-     echo $bold . $azul . "[+] Verificando processos suspeitos...\n";
-     
-     $comandoProcessos = 'adb shell "ps | grep -E \"(bypass|redirect|fake)\" 2>/dev/null"';
-     $resultadoProcessos = shell_exec($comandoProcessos);
-     
-     if ($resultadoProcessos !== null && !empty(trim($resultadoProcessos))) {
-         $linhasProcessos = explode("\n", trim($resultadoProcessos));
-         $processosSuspeitos = [];
-         
-         foreach ($linhasProcessos as $linha) {
-             if (!empty(trim($linha)) && 
-                 strpos($linha, '[kblockd]') === false && 
-                 strpos($linha, 'kworker') === false &&
-                 strpos($linha, '[ksoftirqd]') === false &&
-                 strpos($linha, '[migration]') === false &&
-                 strpos($linha, 'mtk_drm_fake_vsync') === false) {
-                 $processosSuspeitos[] = $linha;
-             }
-         }
-         
-         if (!empty($processosSuspeitos)) {
-             echo $bold . $vermelho . "[!] BYPASS DETECTADO: Processos suspeitos em execução!\n";
-             echo $bold . $amarelo . "[!] Processos encontrados:\n" . implode("\n", $processosSuspeitos) . "\n";
-             $bypassDetectado = true;
-         }
+         $executouChecksExtra = true;
      }
     }
     
@@ -450,7 +454,7 @@ escolheropcoes:
             $comandoScripts = 'adb shell "pgrep -a bash | awk \'{\$1=\"\"; sub(/^ /,\"\"); print}\' | grep -vFx \"/data/data/com.termux/files/usr/bin/bash -l\""';
             $scriptsAtivos = shell_exec($comandoScripts);
             
-            if (!empty(trim($scriptsAtivos))) {
+            if ($scriptsAtivos !== null && trim($scriptsAtivos) !== '') {
                 echo $bold . $vermelho . "[!] Scripts detectados rodando em segundo plano! Cancelando scanner...\n";
                 echo $bold . $amarelo . "Scripts encontrados:\n" . trim($scriptsAtivos) . "\n\n";
                 exit;
@@ -1554,7 +1558,7 @@ escolheropcoes:
             $comandoScripts = 'adb shell "pgrep -a bash | awk \'{\$1=\"\"; sub(/^ /,\"\"); print}\' | grep -vFx \"/data/data/com.termux/files/usr/bin/bash -l\""';
             $scriptsAtivos = shell_exec($comandoScripts);
             
-            if (!empty(trim($scriptsAtivos))) {
+            if ($scriptsAtivos !== null && trim($scriptsAtivos) !== '') {
                 echo $bold . $vermelho . "[!] Scripts detectados rodando em segundo plano! Cancelando scanner...\n";
                 echo $bold . $amarelo . "Scripts encontrados:\n" . trim($scriptsAtivos) . "\n\n";
                 exit;
