@@ -108,7 +108,7 @@ function detectarBypassShell() {
          
          echo $bold . $azul . "[+] Verificando processos suspeitos...\n";
          
-         $comandoProcessos = 'adb shell "ps | grep -E \"(bypass|redirect|fake)\" 2>/dev/null"';
+     $comandoProcessos = 'adb shell "ps | grep -E \"(bypass|redirect|fake)\" | grep -vE \"(drm_fake_vsync|mtk_drm_fake_vsync|mtk_drm_fake_vs)\" 2>/dev/null"';
          $resultadoProcessos = shell_exec($comandoProcessos);
          
          if ($resultadoProcessos !== null && !empty(trim($resultadoProcessos))) {
@@ -116,14 +116,16 @@ function detectarBypassShell() {
              $processosSuspeitos = [];
              
              foreach ($linhasProcessos as $linha) {
-                 if (!empty(trim($linha)) && 
-                     strpos($linha, '[kblockd]') === false && 
-                     strpos($linha, 'kworker') === false &&
-                     strpos($linha, '[ksoftirqd]') === false &&
-                     strpos($linha, '[migration]') === false &&
-                     strpos($linha, 'mtk_drm_fake_vsync') === false) {
-                     $processosSuspeitos[] = $linha;
-                 }
+             if (!empty(trim($linha)) && 
+                 strpos($linha, '[kblockd]') === false && 
+                 strpos($linha, 'kworker') === false &&
+                 strpos($linha, '[ksoftirqd]') === false &&
+                 strpos($linha, '[migration]') === false &&
+                 strpos($linha, 'mtk_drm_fake_vsync') === false &&
+                 strpos($linha, 'mtk_drm_fake_vs') === false &&
+                 strpos($linha, 'drm_fake_vsync') === false) {
+                 $processosSuspeitos[] = $linha;
+             }
              }
              
              if (!empty($processosSuspeitos)) {
