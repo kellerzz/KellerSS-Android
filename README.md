@@ -43,7 +43,7 @@ O projeto tem como principal função facilitar o trabalho dos analistas em suas
 
 | Aplicativo                  | Descrição                |
 |----------------------------|---------------------------|
-| [Termux](https://cdn.discordapp.com/attachments/1348094420620279849/1353232408635248720/Termux_ALLIANCE.apk?ex=67eacaa4&is=67e97924&hm=d782777ad6e4d9b90eb62a19fb94b98efb4c4630a7a9383510884daf02cc7ab7&) | Terminal utilizado para rodar o scanner   |
+| [Termux](https://f-droid.org/repo/com.termux_1022.apk) | Terminal utilizado para rodar o scanner   |
 | [Tutorial](https://www.youtube.com/watch?v=RF7O1MHThsE&t=8s) | Tutorial ensinando a como utilizar   |
 
 
