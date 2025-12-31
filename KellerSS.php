@@ -1142,18 +1142,7 @@ escolheropcoes:
                         }
                     }
 
-                    if ($stream_ns['Access'] !== null && $stream_ns['Modify'] !== null && $stream_ns['Change'] !== null
-                        && $shader_ns['Access'] !== null && $shader_ns['Modify'] !== null && $shader_ns['Change'] !== null) {
 
-                        if ($stream_ns['Access'] === $shader_ns['Access'] &&
-                            $stream_ns['Modify'] === $shader_ns['Modify'] &&
-                            $stream_ns['Change'] === $shader_ns['Change']) {
-                            // Timestamps coincidem - comportamento normal
-                        } else {
-                            echo $bold . $vermelho . "[!] BYPASS DE HOLOGRAMA DETECTADO - timestamps NÃO COINCIDEM\n";
-                            echo $bold . $amarelo . "Arquivo(s) inconsistentes com o jogo original — aplique o W.O!\n\n";
-                        }
-                    }
                 } else {
                     echo $bold . $amarelo . "[i] Nenhum arquivo de shader encontrado.\n";
                 }
@@ -2246,18 +2235,7 @@ escolheropcoes:
                         }
                     }
 
-                    if ($stream_ns['Access'] !== null && $stream_ns['Modify'] !== null && $stream_ns['Change'] !== null
-                        && $shader_ns['Access'] !== null && $shader_ns['Modify'] !== null && $shader_ns['Change'] !== null) {
-
-                        if ($stream_ns['Access'] === $shader_ns['Access'] &&
-                            $stream_ns['Modify'] === $shader_ns['Modify'] &&
-                            $stream_ns['Change'] === $shader_ns['Change']) {
-                            // Timestamps coincidem - comportamento normal
-                        } else {
-                            echo $bold . $vermelho . "[!] BYPASS DE HOLOGRAMA DETECTADO - timestamps NÃO COINCIDEM\n";
-                            echo $bold . $amarelo . "Arquivo(s) inconsistentes com o jogo original — aplique o W.O!\n\n";
-                        }
-                    }
+                    
                 } else {
                     echo $bold . $amarelo . "[i] Nenhum arquivo de shader encontrado.\n";
                 }
@@ -2609,4 +2587,5 @@ escolheropcoes:
             die();
         }
       }
+
 ?>
