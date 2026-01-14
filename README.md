@@ -136,7 +136,7 @@ Um grande agradecimento aos membros abaixo por seu trabalho incrível e contribu
       </a>
     </td>
     <td style="text-align: center;">
-      <a href="https://www.instagram.com/pedrww7_">
+      <a href="https://discord.gg/allianceoficial">
         <img src="https://i.imgur.com/8BUhE5T.jpeg" alt="PX" style="width: 50px; height: 50px;">
       </a>
     </td>
