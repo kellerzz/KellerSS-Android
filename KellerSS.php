@@ -723,6 +723,28 @@ escolheropcoes:
                             $motivos[] = "Motivo 8 - Arquivo JSON ausente: " . basename($jsonPath);
                         }
 
+                        // Motivo 14 - Versão do replay diferente da versão do jogo
+                        if ($indice < 3) {
+                            $conteudoJson = shell_exec('adb shell "cat ' . escapeshellarg($jsonPath) . ' 2>/dev/null"');
+                            
+                            if ($conteudoJson && preg_match('/"Version":"(.*?)"/', $conteudoJson, $matchVersionJson)) {
+                                $versaoJson = $matchVersionJson[1];
+                                
+                                if (!isset($versaoJogoInstaladoTH)) {
+                                    $dumpsys = shell_exec('adb shell dumpsys package com.dts.freefireth');
+                                    if ($dumpsys && preg_match('/versionName=([\d\.]+)/', $dumpsys, $matchVersionJogo)) {
+                                        $versaoJogoInstaladoTH = $matchVersionJogo[1];
+                                    } else {
+                                        $versaoJogoInstaladoTH = 'Desconhecida';
+                                    }
+                                }
+                                
+                                if ($versaoJogoInstaladoTH !== 'Desconhecida' && $versaoJson !== $versaoJogoInstaladoTH) {
+                                    $motivos[] = "Motivo 14 - Versão do replay ($versaoJson) diferente da versão do jogo ($versaoJogoInstaladoTH): " . basename($jsonPath);
+                                }
+                            }
+                        }
+
                     }
                 }
                 
@@ -1816,6 +1838,28 @@ escolheropcoes:
                         }
                         if (!$jsonStat) {
                             $motivos[] = "Motivo 8 - Arquivo JSON ausente: " . basename($jsonPath);
+                        }
+
+                        // Motivo 14 - Versão do replay diferente da versão do jogo
+                        if ($indice < 3) {
+                            $conteudoJson = shell_exec('adb shell "cat ' . escapeshellarg($jsonPath) . ' 2>/dev/null"');
+                            
+                            if ($conteudoJson && preg_match('/"Version":"(.*?)"/', $conteudoJson, $matchVersionJson)) {
+                                $versaoJson = $matchVersionJson[1];
+                                
+                                if (!isset($versaoJogoInstaladoMax)) {
+                                    $dumpsys = shell_exec('adb shell dumpsys package com.dts.freefiremax');
+                                    if ($dumpsys && preg_match('/versionName=([\d\.]+)/', $dumpsys, $matchVersionJogo)) {
+                                        $versaoJogoInstaladoMax = $matchVersionJogo[1];
+                                    } else {
+                                        $versaoJogoInstaladoMax = 'Desconhecida';
+                                    }
+                                }
+                                
+                                if ($versaoJogoInstaladoMax !== 'Desconhecida' && $versaoJson !== $versaoJogoInstaladoMax) {
+                                    $motivos[] = "Motivo 14 - Versão do replay ($versaoJson) diferente da versão do jogo ($versaoJogoInstaladoMax): " . basename($jsonPath);
+                                }
+                            }
                         }
 
                     }
