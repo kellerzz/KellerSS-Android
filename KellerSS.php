@@ -740,7 +740,7 @@ escolheropcoes:
                                 }
                                 
                                 if ($versaoJogoInstaladoTH !== 'Desconhecida' && $versaoJson !== $versaoJogoInstaladoTH) {
-                                    $motivos[] = "Motivo 14 - Versão do replay ($versaoJson) diferente da versão do jogo ($versaoJogoInstaladoTH): " . basename($jsonPath);
+                                    $motivos[] = "Motivo 14 - Replay não é do dispositivo: " . basename($jsonPath);
                                 }
                             }
                         }
@@ -1857,7 +1857,7 @@ escolheropcoes:
                                 }
                                 
                                 if ($versaoJogoInstaladoMax !== 'Desconhecida' && $versaoJson !== $versaoJogoInstaladoMax) {
-                                    $motivos[] = "Motivo 14 - Versão do replay ($versaoJson) diferente da versão do jogo ($versaoJogoInstaladoMax): " . basename($jsonPath);
+                                    $motivos[] = "Motivo 14 - Replay não é do dispositivo: " . basename($jsonPath);
                                 }
                             }
                         }
