@@ -136,8 +136,13 @@ function detectarBypassShell() {
         'ro.secure' => ['valor' => '0', 'descricao' => 'Segurança desativada'],
         'service.adb.root' => ['valor' => '1', 'descricao' => 'ADB root ativo'],
         'ro.build.selinux' => ['valor' => '0', 'descricao' => 'SELinux desabilitado'],
+        'ro.boot.flash.locked' => ['valor' => '0', 'descricao' => 'Flash desbloqueado'],
+        'ro.boot.veritymode' => ['valor' => 'disabled', 'descricao' => 'dm-verity desabilitado'],
+        'sys.oem_unlock_allowed' => ['valor' => '1', 'descricao' => 'OEM unlock permitido'],
+        'persist.sys.usb.config' => ['valor' => 'adb', 'descricao' => 'ADB persistente ativo'],
+        'ro.kernel.qemu' => ['valor' => '1', 'descricao' => 'Emulador detectado'],
     ];
-    
+
     foreach ($propriedadesSuspeitas as $prop => $info) {
         $valor = trim(shell_exec("adb shell getprop $prop 2>/dev/null"));
         if ($valor === $info['valor']) {
@@ -166,7 +171,13 @@ function detectarBypassShell() {
         '/data/local/xbin/su',
         '/su/bin/su',
         '/system/sbin/su',
-        '/vendor/bin/su'
+        '/vendor/bin/su',
+        '/system/app/Superuser.apk',
+        '/data/adb/magisk',
+        '/data/adb/ksu', 
+        '/data/adb/ap',   
+        '/cache/su',
+        '/dev/com.koushikdutta.superuser.daemon',
     ];
     
     $suEncontrado = false;
