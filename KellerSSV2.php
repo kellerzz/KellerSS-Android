@@ -70,11 +70,20 @@ function detectarBypassShell() {
         $bypassDetectado = true;
     }
 
-    // Verificação de KernelSU via Logcat
-    $logcatKernelSU = shell_exec('adb shell "logcat -b kernel -d | grep -i kernelsu"');
-    if ($logcatKernelSU && !empty(trim($logcatKernelSU))) {
-        echo $bold . $vermelho . "[!] Root detectado\n";
-        $bypassDetectado = true;
+    // Verificação de KernelSU ou Magisk (Logcat e Dumpsys)
+    $rootChecks = [
+        'Logcat Kernel' => 'adb shell "logcat -b kernel -d | grep -iE \'kernelsu|magisk\'"',
+        'Dumpsys Package' => 'adb shell "dumpsys package | grep -iE \'kernelsu|magisk\'"',
+        'Dumpsys Activity' => 'adb shell "dumpsys activity | grep -iE \'kernelsu|magisk\'"',
+        'Dumpsys Processes' => 'adb shell "dumpsys activity processes | grep -iE \'kernelsu|magisk\'"'
+    ];
+
+    foreach ($rootChecks as $checkName => $cmd) {
+        $output = shell_exec($cmd);
+        if ($output && !empty(trim($output))) {
+            echo $bold . $vermelho . "[!] Root detectado\n";
+            $bypassDetectado = true;
+        }
     }
     
     $funcoesTeste = [
