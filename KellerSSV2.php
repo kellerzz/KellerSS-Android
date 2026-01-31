@@ -602,6 +602,48 @@ function detectarBypassShell() {
 }
 
 
+function verificarDispositivoADB() {
+    global $bold, $vermelho, $cln;
+
+    // Verifica dispositivos conectados
+    $devicesOutput = shell_exec('adb devices');
+    $lines = explode("\n", trim($devicesOutput));
+    $devices = [];
+
+    // Ignora a primeira linha "List of devices attached"
+    for ($i = 1; $i < count($lines); $i++) {
+        $line = trim($lines[$i]);
+        if (!empty($line) && strpos($line, 'device') !== false) {
+            $parts = preg_split('/\s+/', $line);
+            if (isset($parts[0])) {
+                $devices[] = $parts[0];
+            }
+        }
+    }
+
+    $numDevices = count($devices);
+
+    if ($numDevices == 0) {
+        echo $bold . $vermelho . "[!] Erro: Nenhum dispositivo encontrado.\n";
+        echo $bold . $vermelho . "    Faça o pareamento de IP ou conecte um dispositivo via USB.\n" . $cln;
+        exit(1);
+    } elseif ($numDevices > 1) {
+        echo $bold . $vermelho . "[!] Erro: Mais de um dispositivo/emulador conectado.\n";
+        echo $bold . $vermelho . "    Desconecte os outros dispositivos e mantenha apenas um.\n";
+        echo $bold . $vermelho . "    Dispositivos encontrados:\n";
+        foreach ($devices as $dev) {
+            echo "    - $dev\n";
+        }
+        echo $cln;
+        exit(1);
+    }
+    
+    // Tenta corrigir erro de permissão do clear no Termux, se necessário
+    shell_exec('adb shell "chmod 755 /data/data/com.termux/files/usr/bin/clear 2>/dev/null"');
+
+    return true;
+}
+
 function inputusuario($message){
   global $branco, $bold, $verdebg, $vermelhobg, $azulbg, $cln, $lazul, $fverde, $ciano;
   $inputstyle = $cln . $bold . $ciano . "  ▸ " . $message . ": " . $fverde ;
@@ -694,6 +736,7 @@ escolheropcoes:
         } elseif ($opcaoscanner == "1") {
             system("clear");
             keller_banner();
+            verificarDispositivoADB();
 
             if (!shell_exec("adb version > /dev/null 2>&1"))
             {
@@ -1816,6 +1859,7 @@ escolheropcoes:
         } elseif ($opcaoscanner == "2") {
             system("clear");
             keller_banner();
+            verificarDispositivoADB();
 
             if (!shell_exec("adb version > /dev/null 2>&1"))
             {
