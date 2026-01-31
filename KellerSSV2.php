@@ -180,7 +180,7 @@ function detectarBypassShell() {
     $suEncontrado = false;
     foreach ($binariosSU as $bin) {
         $cmd = 'adb shell "test -f ' . escapeshellarg($bin) . ' && echo FOUND || echo NOTFOUND" 2>/dev/null';
-        $result = trim(shell_exec($cmd));
+        $result = trim(shell_exec($cmd) ?? '');
         if ($result === 'FOUND') {
             echo $bold . $vermelho . "[!] Binário SU encontrado: $bin\n" . $cln;
             $bypassDetectado = true;
@@ -222,7 +222,7 @@ function detectarBypassShell() {
     ];
     
     foreach ($magiskDirs as $dir) {
-        $check = trim(shell_exec('adb shell "test -e ' . escapeshellarg($dir) . ' && echo FOUND || echo NOTFOUND" 2>/dev/null'));
+        $check = trim(shell_exec('adb shell "test -e ' . escapeshellarg($dir) . ' && echo FOUND || echo NOTFOUND" 2>/dev/null') ?? '');
         if ($check === 'FOUND') {
             echo $bold . $vermelho . "[!] Diretório/arquivo Magisk encontrado: $dir\n" . $cln;
             $bypassDetectado = true;
@@ -283,7 +283,7 @@ function detectarBypassShell() {
     ];
     
     foreach ($kernelsuFiles as $file) {
-        $check = trim(shell_exec('adb shell "test -e ' . escapeshellarg($file) . ' && echo FOUND || echo NOTFOUND" 2>/dev/null'));
+        $check = trim(shell_exec('adb shell "test -e ' . escapeshellarg($file) . ' && echo FOUND || echo NOTFOUND" 2>/dev/null') ?? '');
         if ($check === 'FOUND') {
             echo $bold . $vermelho . "[!] Arquivo/diretório KernelSU encontrado: $file\n" . $cln;
             $bypassDetectado = true;
@@ -327,7 +327,7 @@ function detectarBypassShell() {
     }
     
     // Verificar diretório APatch
-    $apatchDir = trim(shell_exec('adb shell "test -d /data/adb/ap && echo FOUND || echo NOTFOUND" 2>/dev/null'));
+    $apatchDir = trim(shell_exec('adb shell "test -d /data/adb/ap && echo FOUND || echo NOTFOUND" 2>/dev/null') ?? '');
     if ($apatchDir === 'FOUND') {
         echo $bold . $vermelho . "[!] Diretório APatch encontrado: /data/adb/ap\n" . $cln;
         $bypassDetectado = true;
@@ -412,10 +412,28 @@ function detectarBypassShell() {
     foreach ($hookFrameworks as $framework => $checks) {
         foreach ($checks as $check) {
             $output = shell_exec($check);
-            if ($output && (strpos($output, 'FOUND') !== false || 
-                (!empty(trim($output)) && strpos($check, 'NOTFOUND') === false))) {
+            $outputTrim = trim($output ?? '');
+            
+            // Verificar se realmente encontrou algo
+            // FOUND = encontrado | NOTFOUND = não encontrado | Qualquer outro texto = encontrado
+            $encontrado = false;
+            
+            if (!empty($outputTrim)) {
+                if (strpos($check, 'FOUND') !== false) {
+                    // Se o comando usa FOUND/NOTFOUND, só detecta se retornar FOUND
+                    if ($outputTrim === 'FOUND') {
+                        $encontrado = true;
+                    }
+                } else {
+                    // Se o comando NÃO usa FOUND/NOTFOUND (grep, pm list, etc)
+                    // Qualquer output não-vazio indica detecção
+                    $encontrado = true;
+                }
+            }
+            
+            if ($encontrado) {
                 echo $bold . $vermelho . "[!] Framework de hook detectado: $framework\n" . $cln;
-                echo $bold . $amarelo . "    Detalhes: " . substr(trim($output), 0, 100) . "\n" . $cln;
+                echo $bold . $amarelo . "    Detalhes: " . substr($outputTrim, 0, 100) . "\n" . $cln;
                 $bypassDetectado = true;
                 $hookDetectado = true;
                 $problemasEncontrados++;
@@ -579,6 +597,7 @@ function detectarBypassShell() {
     
     return $bypassDetectado;
 }
+
 
 function inputusuario($message){
   global $branco, $bold, $verdebg, $vermelhobg, $azulbg, $cln, $lazul, $fverde;
