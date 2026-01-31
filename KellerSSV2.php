@@ -54,281 +54,530 @@ function atualizar()
 }
 
 function detectarBypassShell() {
-    global $bold, $vermelho, $amarelo, $fverde, $azul, $branco, $cln;
+    global $bold, $vermelho, $amarelo, $fverde, $azul, $branco, $cln, $verde, $ciano;
     
     $bypassDetectado = false;
+    $totalVerificacoes = 0;
+    $problemasEncontrados = 0;
     
-    echo $bold . $azul . "[+] Verificando funções maliciosas no ambiente shell...\n";
+    echo "\n";
+    echo $bold . $ciano . "╔═══════════════════════════════════════════════════════════════════╗\n";
+    echo $bold . $ciano . "║          ANÁLISE COMPLETA DE SEGURANÇA DO DISPOSITIVO             ║\n";
+    echo $bold . $ciano . "╚═══════════════════════════════════════════════════════════════════╝\n\n" . $cln;
 
-    $verifiedBootState = trim(shell_exec('adb shell getprop ro.boot.verifiedbootstate'));
+    // ═══════════════════════════════════════════════════════════════════
+    // VERIFICAÇÃO DE CONEXÃO DO DISPOSITIVO
+    // ═══════════════════════════════════════════════════════════════════
+    echo $bold . $azul . "┌─────────────────────────────────────────────────────────────────┐\n";
+    echo $bold . $azul . "│ [1] VERIFICANDO DISPOSITIVO CONECTADO                           │\n";
+    echo $bold . $azul . "└─────────────────────────────────────────────────────────────────┘\n" . $cln;
+    
+    $devices = shell_exec('adb devices 2>&1');
+    if (strpos($devices, 'device') === false || strpos($devices, 'unauthorized') !== false) {
+        echo $bold . $vermelho . "[✗] Nenhum dispositivo detectado ou sem autorização!\n" . $cln;
+        return false;
+    }
+    
+    $check = shell_exec('adb shell "ls /sdcard 2>&1"');
+    if (strpos($check, 'Permission denied') !== false) {
+        echo $bold . $vermelho . "[✗] ADB sem permissões suficientes!\n" . $cln;
+        return false;
+    }
+    
+    echo $bold . $verde . "[✓] Dispositivo conectado com permissões adequadas\n\n" . $cln;
+
+    // ═══════════════════════════════════════════════════════════════════
+    // VERIFICAÇÃO DO ESTADO DE BOOT
+    // ═══════════════════════════════════════════════════════════════════
+    echo $bold . $azul . "┌─────────────────────────────────────────────────────────────────┐\n";
+    echo $bold . $azul . "│ [2] VERIFICANDO ESTADO DE BOOT VERIFICADO                       │\n";
+    echo $bold . $azul . "└─────────────────────────────────────────────────────────────────┘\n" . $cln;
+    
+    $verifiedBootState = trim(shell_exec('adb shell getprop ro.boot.verifiedbootstate 2>/dev/null'));
+    
     if ($verifiedBootState === 'yellow') {
-        echo $bold . $amarelo . "[!] Suspeita de Root\n";
+        echo $bold . $amarelo . "[!] Boot State: YELLOW - Suspeita de modificação no sistema\n" . $cln;
         $bypassDetectado = true;
+        $problemasEncontrados++;
     } elseif ($verifiedBootState === 'orange') {
-        echo $bold . $vermelho . "[!] Root detectado\n";
+        echo $bold . $vermelho . "[!] Boot State: ORANGE - Bootloader desbloqueado detectado\n" . $cln;
         $bypassDetectado = true;
+        $problemasEncontrados++;
+    } elseif ($verifiedBootState === 'green') {
+        echo $bold . $verde . "[✓] Boot State: GREEN - Sistema verificado\n" . $cln;
+    } else {
+        echo $bold . $amarelo . "[!] Boot State: $verifiedBootState (Desconhecido)\n" . $cln;
+    }
+    $totalVerificacoes++;
+
+    // ═══════════════════════════════════════════════════════════════════
+    // VERIFICAÇÃO DE SELINUX
+    // ═══════════════════════════════════════════════════════════════════
+    echo "\n" . $bold . $azul . "┌─────────────────────────────────────────────────────────────────┐\n";
+    echo $bold . $azul . "│ [3] VERIFICANDO STATUS DO SELINUX                               │\n";
+    echo $bold . $azul . "└─────────────────────────────────────────────────────────────────┘\n" . $cln;
+    
+    $selinux = trim(shell_exec('adb shell getenforce 2>/dev/null'));
+    
+    if ($selinux === 'Permissive') {
+        echo $bold . $vermelho . "[!] SELinux: PERMISSIVE - Modo permissivo detectado (comum em dispositivos rooteados)\n" . $cln;
+        $bypassDetectado = true;
+        $problemasEncontrados++;
+    } elseif ($selinux === 'Enforcing') {
+        echo $bold . $verde . "[✓] SELinux: ENFORCING - Modo de segurança ativo\n" . $cln;
+    } else {
+        echo $bold . $amarelo . "[!] SELinux: $selinux (Status desconhecido)\n" . $cln;
+    }
+    $totalVerificacoes++;
+
+    // ═══════════════════════════════════════════════════════════════════
+    // VERIFICAÇÃO DE PROPRIEDADES SUSPEITAS DO SISTEMA
+    // ═══════════════════════════════════════════════════════════════════
+    echo "\n" . $bold . $azul . "┌─────────────────────────────────────────────────────────────────┐\n";
+    echo $bold . $azul . "│ [4] VERIFICANDO PROPRIEDADES DO SISTEMA                         │\n";
+    echo $bold . $azul . "└─────────────────────────────────────────────────────────────────┘\n" . $cln;
+    
+    $propriedadesSuspeitas = [
+        'ro.debuggable' => ['valor' => '1', 'descricao' => 'Modo debug ativado'],
+        'ro.secure' => ['valor' => '0', 'descricao' => 'Segurança desativada'],
+        'service.adb.root' => ['valor' => '1', 'descricao' => 'ADB root ativo'],
+        'ro.build.selinux' => ['valor' => '0', 'descricao' => 'SELinux desabilitado'],
+    ];
+    
+    foreach ($propriedadesSuspeitas as $prop => $info) {
+        $valor = trim(shell_exec("adb shell getprop $prop 2>/dev/null"));
+        if ($valor === $info['valor']) {
+            echo $bold . $vermelho . "[!] Propriedade suspeita: $prop = $valor ({$info['descricao']})\n" . $cln;
+            $bypassDetectado = true;
+            $problemasEncontrados++;
+        }
+        $totalVerificacoes++;
+    }
+    
+    echo $bold . $verde . "[✓] Verificação de propriedades concluída\n" . $cln;
+
+    // ═══════════════════════════════════════════════════════════════════
+    // VERIFICAÇÃO DE BINÁRIOS SU (ROOT)
+    // ═══════════════════════════════════════════════════════════════════
+    echo "\n" . $bold . $azul . "┌─────────────────────────────────────────────────────────────────┐\n";
+    echo $bold . $azul . "│ [5] VERIFICANDO BINÁRIOS SU (SUPERUSUÁRIO)                      │\n";
+    echo $bold . $azul . "└─────────────────────────────────────────────────────────────────┘\n" . $cln;
+    
+    $binariosSU = [
+        '/system/bin/su',
+        '/system/xbin/su',
+        '/sbin/su',
+        '/system/su',
+        '/system/bin/.ext/.su',
+        '/data/local/su',
+        '/data/local/bin/su',
+        '/data/local/xbin/su',
+        '/su/bin/su',
+        '/system/sbin/su',
+        '/vendor/bin/su'
+    ];
+    
+    $suEncontrado = false;
+    foreach ($binariosSU as $bin) {
+        $cmd = 'adb shell "test -f ' . escapeshellarg($bin) . ' && echo FOUND || echo NOTFOUND" 2>/dev/null';
+        $result = trim(shell_exec($cmd));
+        if ($result === 'FOUND') {
+            echo $bold . $vermelho . "[!] Binário SU encontrado: $bin\n" . $cln;
+            $bypassDetectado = true;
+            $suEncontrado = true;
+            $problemasEncontrados++;
+        }
+        $totalVerificacoes++;
+    }
+    
+    if (!$suEncontrado) {
+        echo $bold . $verde . "[✓] Nenhum binário SU encontrado\n" . $cln;
     }
 
-    $rootChecks = [
-        'Logcat Kernel' => 'adb shell "logcat -b kernel -d | grep -iE \'kernelsu|magisk\'"',
-        'Dumpsys Package' => 'adb shell "dumpsys package | grep -iE \'kernelsu|magisk\' | grep -v queriesPackages"',
-        'Dumpsys Activity' => 'adb shell "dumpsys activity | grep -iE \'kernelsu|magisk\' | grep -v queriesPackages"',
-        'Dumpsys Processes' => 'adb shell "dumpsys activity processes | grep -iE \'kernelsu|magisk\'"'
+    // ═══════════════════════════════════════════════════════════════════
+    // DETECÇÃO MAGISK AVANÇADA
+    // ═══════════════════════════════════════════════════════════════════
+    echo "\n" . $bold . $azul . "┌─────────────────────────────────────────────────────────────────┐\n";
+    echo $bold . $azul . "│ [6] DETECÇÃO AVANÇADA DE MAGISK                                 │\n";
+    echo $bold . $azul . "└─────────────────────────────────────────────────────────────────┘\n" . $cln;
+    
+    $magiskDetectado = false;
+    
+    // Verificar pacotes Magisk
+    $magiskPkgs = shell_exec('adb shell "pm list packages 2>/dev/null | grep -iE \'magisk|topjohnwu\'"');
+    if ($magiskPkgs && !empty(trim($magiskPkgs))) {
+        echo $bold . $vermelho . "[!] Pacote Magisk encontrado:\n" . $cln;
+        echo $bold . $amarelo . "    " . trim($magiskPkgs) . "\n" . $cln;
+        $bypassDetectado = true;
+        $magiskDetectado = true;
+        $problemasEncontrados++;
+    }
+    
+    // Verificar diretórios Magisk
+    $magiskDirs = [
+        '/data/adb/magisk',
+        '/sbin/.magisk',
+        '/data/adb/modules',
+        '/cache/magisk.log'
+    ];
+    
+    foreach ($magiskDirs as $dir) {
+        $check = trim(shell_exec('adb shell "test -e ' . escapeshellarg($dir) . ' && echo FOUND || echo NOTFOUND" 2>/dev/null'));
+        if ($check === 'FOUND') {
+            echo $bold . $vermelho . "[!] Diretório/arquivo Magisk encontrado: $dir\n" . $cln;
+            $bypassDetectado = true;
+            $magiskDetectado = true;
+            $problemasEncontrados++;
+        }
+        $totalVerificacoes++;
+    }
+    
+    // Verificar processos Magisk
+    $magiskProcs = shell_exec('adb shell "ps -A 2>/dev/null | grep -iE \'magisk|magiskd\'"');
+    if ($magiskProcs && !empty(trim($magiskProcs))) {
+        echo $bold . $vermelho . "[!] Processo Magisk em execução:\n" . $cln;
+        echo $bold . $amarelo . "    " . trim($magiskProcs) . "\n" . $cln;
+        $bypassDetectado = true;
+        $magiskDetectado = true;
+        $problemasEncontrados++;
+    }
+    
+    // Verificar mountpoints Magisk
+    $magiskMounts = shell_exec('adb shell "mount 2>/dev/null | grep magisk"');
+    if ($magiskMounts && !empty(trim($magiskMounts))) {
+        echo $bold . $vermelho . "[!] Mountpoint Magisk detectado:\n" . $cln;
+        echo $bold . $amarelo . "    " . trim($magiskMounts) . "\n" . $cln;
+        $bypassDetectado = true;
+        $magiskDetectado = true;
+        $problemasEncontrados++;
+    }
+    
+    if (!$magiskDetectado) {
+        echo $bold . $verde . "[✓] Nenhum vestígio de Magisk encontrado\n" . $cln;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // DETECÇÃO KERNELSU
+    // ═══════════════════════════════════════════════════════════════════
+    echo "\n" . $bold . $azul . "┌─────────────────────────────────────────────────────────────────┐\n";
+    echo $bold . $azul . "│ [7] DETECÇÃO DE KERNELSU                                        │\n";
+    echo $bold . $azul . "└─────────────────────────────────────────────────────────────────┘\n" . $cln;
+    
+    $kernelsuDetectado = false;
+    
+    // Verificar módulo do kernel
+    $kernelMod = shell_exec('adb shell "lsmod 2>/dev/null | grep -i kernelsu"');
+    if ($kernelMod && !empty(trim($kernelMod))) {
+        echo $bold . $vermelho . "[!] Módulo KernelSU no kernel:\n" . $cln;
+        echo $bold . $amarelo . "    " . trim($kernelMod) . "\n" . $cln;
+        $bypassDetectado = true;
+        $kernelsuDetectado = true;
+        $problemasEncontrados++;
+    }
+    
+    // Verificar arquivos KernelSU
+    $kernelsuFiles = [
+        '/data/adb/ksud',
+        '/data/adb/ksu',
+        '/proc/kernelsu'
+    ];
+    
+    foreach ($kernelsuFiles as $file) {
+        $check = trim(shell_exec('adb shell "test -e ' . escapeshellarg($file) . ' && echo FOUND || echo NOTFOUND" 2>/dev/null'));
+        if ($check === 'FOUND') {
+            echo $bold . $vermelho . "[!] Arquivo/diretório KernelSU encontrado: $file\n" . $cln;
+            $bypassDetectado = true;
+            $kernelsuDetectado = true;
+            $problemasEncontrados++;
+        }
+        $totalVerificacoes++;
+    }
+    
+    // Verificar versão do kernel
+    $kernelVersion = shell_exec('adb shell "uname -r 2>/dev/null | grep -i ksu"');
+    if ($kernelVersion && !empty(trim($kernelVersion))) {
+        echo $bold . $vermelho . "[!] Kernel modificado com KernelSU:\n" . $cln;
+        echo $bold . $amarelo . "    " . trim($kernelVersion) . "\n" . $cln;
+        $bypassDetectado = true;
+        $kernelsuDetectado = true;
+        $problemasEncontrados++;
+    }
+    
+    if (!$kernelsuDetectado) {
+        echo $bold . $verde . "[✓] Nenhum vestígio de KernelSU encontrado\n" . $cln;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // DETECÇÃO APATCH
+    // ═══════════════════════════════════════════════════════════════════
+    echo "\n" . $bold . $azul . "┌─────────────────────────────────────────────────────────────────┐\n";
+    echo $bold . $azul . "│ [8] DETECÇÃO DE APATCH                                          │\n";
+    echo $bold . $azul . "└─────────────────────────────────────────────────────────────────┘\n" . $cln;
+    
+    $apatchDetectado = false;
+    
+    // Verificar pacotes APatch
+    $apatchPkgs = shell_exec('adb shell "pm list packages 2>/dev/null | grep -i apatch"');
+    if ($apatchPkgs && !empty(trim($apatchPkgs))) {
+        echo $bold . $vermelho . "[!] Pacote APatch encontrado:\n" . $cln;
+        echo $bold . $amarelo . "    " . trim($apatchPkgs) . "\n" . $cln;
+        $bypassDetectado = true;
+        $apatchDetectado = true;
+        $problemasEncontrados++;
+    }
+    
+    // Verificar diretório APatch
+    $apatchDir = trim(shell_exec('adb shell "test -d /data/adb/ap && echo FOUND || echo NOTFOUND" 2>/dev/null'));
+    if ($apatchDir === 'FOUND') {
+        echo $bold . $vermelho . "[!] Diretório APatch encontrado: /data/adb/ap\n" . $cln;
+        $bypassDetectado = true;
+        $apatchDetectado = true;
+        $problemasEncontrados++;
+    }
+    
+    // Verificar propriedades APatch
+    $apatchProp = shell_exec('adb shell "getprop 2>/dev/null | grep -i apatch"');
+    if ($apatchProp && !empty(trim($apatchProp))) {
+        echo $bold . $vermelho . "[!] Propriedade APatch encontrada:\n" . $cln;
+        echo $bold . $amarelo . "    " . trim($apatchProp) . "\n" . $cln;
+        $bypassDetectado = true;
+        $apatchDetectado = true;
+        $problemasEncontrados++;
+    }
+    
+    if (!$apatchDetectado) {
+        echo $bold . $verde . "[✓] Nenhum vestígio de APatch encontrado\n" . $cln;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // VERIFICAÇÃO DE LOGS DO SISTEMA (LOGCAT)
+    // ═══════════════════════════════════════════════════════════════════
+    echo "\n" . $bold . $azul . "┌─────────────────────────────────────────────────────────────────┐\n";
+    echo $bold . $azul . "│ [9] ANÁLISE DE LOGS DO KERNEL E SISTEMA                         │\n";
+    echo $bold . $azul . "└─────────────────────────────────────────────────────────────────┘\n" . $cln;
+    
+    $logChecks = [
+        'Logcat Kernel' => 'adb shell "logcat -b kernel -d 2>/dev/null | grep -iE \'kernelsu|magisk|apatch\'"',
+        'Dumpsys Package' => 'adb shell "dumpsys package 2>/dev/null | grep -iE \'kernelsu|magisk|apatch\' | grep -v queriesPackages"',
+        'Dumpsys Activity' => 'adb shell "dumpsys activity 2>/dev/null | grep -iE \'kernelsu|magisk|apatch\' | grep -v queriesPackages"',
+        'Dumpsys Processes' => 'adb shell "dumpsys activity processes 2>/dev/null | grep -iE \'kernelsu|magisk|apatch\'"'
     ];
 
-    foreach ($rootChecks as $checkName => $cmd) {
+    $logDetectado = false;
+    foreach ($logChecks as $checkName => $cmd) {
         $output = shell_exec($cmd);
         if ($output && !empty(trim($output))) {
-            echo $bold . $vermelho . "[!] Root detectado\n";
-            echo $bold . $amarelo . "[!] Detalhes encontrados:\n" . trim($output) . "\n" . $cln;
+            echo $bold . $vermelho . "[!] Root detectado em $checkName:\n" . $cln;
+            echo $bold . $amarelo . "    " . substr(trim($output), 0, 200) . "...\n" . $cln;
             $bypassDetectado = true;
+            $logDetectado = true;
+            $problemasEncontrados++;
+        }
+        $totalVerificacoes++;
+    }
+    
+    if (!$logDetectado) {
+        echo $bold . $verde . "[✓] Logs do sistema limpos\n" . $cln;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // DETECÇÃO DE FRAMEWORKS DE HOOK
+    // ═══════════════════════════════════════════════════════════════════
+    echo "\n" . $bold . $azul . "┌─────────────────────────────────────────────────────────────────┐\n";
+    echo $bold . $azul . "│ [10] DETECÇÃO DE FRAMEWORKS DE HOOK                            │\n";
+    echo $bold . $azul . "└─────────────────────────────────────────────────────────────────┘\n" . $cln;
+    
+    $hookFrameworks = [
+        'Xposed' => [
+            'adb shell "pm list packages 2>/dev/null | grep -iE \'xposed|exposed\'"',
+            'adb shell "test -f /system/framework/XposedBridge.jar && echo FOUND || echo NOTFOUND"'
+        ],
+        'LSPosed' => [
+            'adb shell "pm list packages 2>/dev/null | grep -i lsposed"',
+            'adb shell "test -d /data/adb/lspd && echo FOUND || echo NOTFOUND"'
+        ],
+        'EdXposed' => [
+            'adb shell "pm list packages 2>/dev/null | grep -i edxposed"'
+        ],
+        'Frida' => [
+            'adb shell "ps -A 2>/dev/null | grep frida"',
+            'adb shell "netstat -tunlp 2>/dev/null | grep 27042"'
+        ],
+        'Substrate' => [
+            'adb shell "pm list packages 2>/dev/null | grep -i substrate"'
+        ]
+    ];
+
+    $hookDetectado = false;
+    foreach ($hookFrameworks as $framework => $checks) {
+        foreach ($checks as $check) {
+            $output = shell_exec($check);
+            if ($output && (strpos($output, 'FOUND') !== false || 
+                (!empty(trim($output)) && strpos($check, 'NOTFOUND') === false))) {
+                echo $bold . $vermelho . "[!] Framework de hook detectado: $framework\n" . $cln;
+                echo $bold . $amarelo . "    Detalhes: " . substr(trim($output), 0, 100) . "\n" . $cln;
+                $bypassDetectado = true;
+                $hookDetectado = true;
+                $problemasEncontrados++;
+                break;
+            }
+            $totalVerificacoes++;
         }
     }
+    
+    if (!$hookDetectado) {
+        echo $bold . $verde . "[✓] Nenhum framework de hook detectado\n" . $cln;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // DETECÇÃO DE FUNÇÕES SHELL SOBRESCRITAS (BYPASS)
+    // ═══════════════════════════════════════════════════════════════════
+    echo "\n" . $bold . $azul . "┌─────────────────────────────────────────────────────────────────┐\n";
+    echo $bold . $azul . "│ [11] VERIFICANDO FUNÇÕES SHELL SOBRESCRITAS                     │\n";
+    echo $bold . $azul . "└─────────────────────────────────────────────────────────────────┘\n" . $cln;
     
     $funcoesTeste = [
         'pkg' => 'adb shell "type pkg 2>/dev/null | grep -q function && echo FUNCTION_DETECTED"',
         'git' => 'adb shell "type git 2>/dev/null | grep -q function && echo FUNCTION_DETECTED"', 
         'cd' => 'adb shell "type cd 2>/dev/null | grep -q function && echo FUNCTION_DETECTED"',
         'stat' => 'adb shell "type stat 2>/dev/null | grep -q function && echo FUNCTION_DETECTED"',
-        'adb' => 'adb shell "type adb 2>/dev/null | grep -q function && echo FUNCTION_DETECTED"'
+        'adb' => 'adb shell "type adb 2>/dev/null | grep -q function && echo FUNCTION_DETECTED"',
+        'ls' => 'adb shell "type ls 2>/dev/null | grep -q function && echo FUNCTION_DETECTED"',
+        'cat' => 'adb shell "type cat 2>/dev/null | grep -q function && echo FUNCTION_DETECTED"',
+        'pm' => 'adb shell "type pm 2>/dev/null | grep -q function && echo FUNCTION_DETECTED"'
     ];
-    $executouChecksExtra = false;
     
+    $funcaoSobrescrita = false;
     foreach ($funcoesTeste as $funcao => $comando) {
         $resultado = shell_exec($comando);
         if ($resultado !== null && strpos($resultado, 'FUNCTION_DETECTED') !== false) {
-            echo $bold . $vermelho . "[!] BYPASS DETECTADO: Função '$funcao' foi sobrescrita!\n";
+            echo $bold . $vermelho . "[!] BYPASS DETECTADO: Função '$funcao' foi sobrescrita!\n" . $cln;
             $bypassDetectado = true;
+            $funcaoSobrescrita = true;
+            $problemasEncontrados++;
         }
-     
-     if (!$executouChecksExtra) {
-         echo $bold . $azul . "[+] Testando acesso a diretórios críticos...\n";
-         
-         $diretoriosCriticos = [
-             '/system/bin',
-             '/data/data/com.dts.freefireth/files',
-             '/data/data/com.dts.freefiremax/files',
-             '/storage/emulated/0/Android/data'
-         ];
-         
-         foreach ($diretoriosCriticos as $diretorio) {
-             $comandoTestDir = 'adb shell "ls -la \"' . $diretorio . '\" 2>/dev/null | head -3"';
-             $resultadoTestDir = shell_exec($comandoTestDir);
-             
-             if (empty($resultadoTestDir) || trim($resultadoTestDir ?? '') === '' || 
-                 ($resultadoTestDir !== null && strpos($resultadoTestDir, 'Permission denied') !== false) ||
-                 ($resultadoTestDir !== null && strpos($resultadoTestDir, 'blocked') !== false) ||
-                 ($resultadoTestDir !== null && strpos($resultadoTestDir, 'redirected') !== false)) {
-                 
-                 if (($resultadoTestDir !== null && strpos($resultadoTestDir, 'blocked') !== false) ||
-                     ($resultadoTestDir !== null && strpos($resultadoTestDir, 'redirected') !== false) ||
-                     ($resultadoTestDir !== null && strpos($resultadoTestDir, 'bypass') !== false)) {
-                     
-                     echo $bold . $vermelho . "[!] BYPASS DETECTADO: Acesso bloqueado/redirecionado ao diretório: $diretorio\n";
-                     echo $bold . $amarelo . "[!] Resposta: " . trim($resultadoTestDir ?? '') . "\n";
-                     $bypassDetectado = true;
-                 }
-             }
-         }
-         
-         echo $bold . $azul . "[+] Verificando processos suspeitos...\n";
-         
-     $comandoProcessos = 'adb shell "ps | grep -E \"(bypass|redirect|fake)\" | grep -vE \"(drm_fake_vsync|mtk_drm_fake_vsync|mtk_drm_fake_vs)\" 2>/dev/null"';
-         $resultadoProcessos = shell_exec($comandoProcessos);
-         
-         if ($resultadoProcessos !== null && !empty(trim($resultadoProcessos))) {
-             $linhasProcessos = explode("\n", trim($resultadoProcessos));
-             $processosSuspeitos = [];
-             
-             foreach ($linhasProcessos as $linha) {
-             if (!empty(trim($linha)) && 
-                 strpos($linha, '[kblockd]') === false && 
-                 strpos($linha, 'kworker') === false &&
-                 strpos($linha, '[ksoftirqd]') === false &&
-                 strpos($linha, '[migration]') === false &&
-                 strpos($linha, 'mtk_drm_fake_vsync') === false &&
-                 strpos($linha, 'mtk_drm_fake_vs') === false &&
-                 strpos($linha, 'drm_fake_vsync') === false) {
-                 $processosSuspeitos[] = $linha;
-             }
-             }
-             
-             if (!empty($processosSuspeitos)) {
-                 echo $bold . $vermelho . "[!] BYPASS DETECTADO: Processos suspeitos em execução!\n";
-                 echo $bold . $amarelo . "[!] Processos encontrados:\n" . implode("\n", $processosSuspeitos) . "\n";
-                 $bypassDetectado = true;
-             }
-         }
-         $executouChecksExtra = true;
-     }
+        $totalVerificacoes++;
     }
     
-    echo $bold . $azul . "[+] Verificando arquivos de configuração...\n";
-    $arquivosConfig = [
-        '~/.bashrc', '~/.bash_profile', '~/.profile', '~/.zshrc', 
-        '~/.config/fish/config.fish', '/data/data/com.termux/files/usr/etc/bash.bashrc'
+    if (!$funcaoSobrescrita) {
+        echo $bold . $verde . "[✓] Todas as funções shell estão normais\n" . $cln;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // TESTE DE ACESSO A DIRETÓRIOS CRÍTICOS
+    // ═══════════════════════════════════════════════════════════════════
+    echo "\n" . $bold . $azul . "┌─────────────────────────────────────────────────────────────────┐\n";
+    echo $bold . $azul . "│ [12] TESTANDO ACESSO A DIRETÓRIOS CRÍTICOS                      │\n";
+    echo $bold . $azul . "└─────────────────────────────────────────────────────────────────┘\n" . $cln;
+    
+    $diretoriosCriticos = [
+        '/system/bin' => 'Binários do sistema',
+        '/data/data/com.dts.freefireth/files' => 'Dados Free Fire TH',
+        '/data/data/com.dts.freefiremax/files' => 'Dados Free Fire MAX',
+        '/storage/emulated/0/Android/data' => 'Dados de aplicativos',
+        '/data/adb' => 'Diretório ADB',
+        '/system/xbin' => 'Binários estendidos'
     ];
     
-    foreach ($arquivosConfig as $arquivo) {
-        $comandoVerificar = 'adb shell "if [ -f ' . $arquivo . ' ]; then cat ' . $arquivo . ' | grep -E \"(function pkg|function git|function cd|function stat|function adb)\" 2>/dev/null; fi"';
-        $resultadoArquivo = shell_exec($comandoVerificar);
+    $acessoBloqueado = false;
+    foreach ($diretoriosCriticos as $diretorio => $descricao) {
+        $comandoTestDir = 'adb shell "ls -la \"' . $diretorio . '\" 2>&1 | head -3"';
+        $resultadoTestDir = shell_exec($comandoTestDir);
         
-        if ($resultadoArquivo !== null && !empty(trim($resultadoArquivo))) {
-            echo $bold . $vermelho . "[!] BYPASS DETECTADO: Funções maliciosas em $arquivo!\n";
-            echo $bold . $amarelo . "[!] Conteúdo detectado:\n" . trim($resultadoArquivo) . "\n";
+        if (empty($resultadoTestDir) || trim($resultadoTestDir ?? '') === '') {
+            echo $bold . $amarelo . "[!] Sem resposta do diretório: $diretorio ($descricao)\n" . $cln;
+        } elseif (($resultadoTestDir !== null && strpos($resultadoTestDir, 'blocked') !== false) ||
+                  ($resultadoTestDir !== null && strpos($resultadoTestDir, 'redirected') !== false) ||
+                  ($resultadoTestDir !== null && strpos($resultadoTestDir, 'bypass') !== false)) {
+            
+            echo $bold . $vermelho . "[!] BYPASS DETECTADO: Acesso bloqueado/redirecionado\n" . $cln;
+            echo $bold . $amarelo . "    Diretório: $diretorio ($descricao)\n" . $cln;
+            echo $bold . $amarelo . "    Resposta: " . substr(trim($resultadoTestDir ?? ''), 0, 100) . "\n" . $cln;
             $bypassDetectado = true;
+            $acessoBloqueado = true;
+            $problemasEncontrados++;
         }
+        $totalVerificacoes++;
     }
     
-     echo $bold . $azul . "[+] Testando comportamento real das funções...\n";
-     
-     $comandoTestGitReal = 'adb shell "cd /tmp 2>/dev/null || cd /data/local/tmp; git clone --help 2>&1 | head -1"';
-     $resultadoGitHelp = shell_exec($comandoTestGitReal);
-     
-     if (empty($resultadoGitHelp) || strpos($resultadoGitHelp, 'usage: git') === false) {
-         $comandoTestClone = 'adb shell "cd /tmp 2>/dev/null || cd /data/local/tmp; timeout 5 git clone https://github.com/kellerzz/KellerSS-Android test-repo 2>&1 | head -3"';
-         $resultadoClone = shell_exec($comandoTestClone);
-         
-         if (strpos($resultadoClone, 'wendell77x') !== false || 
-             strpos($resultadoClone, 'Comando bloqueado') !== false ||
-             strpos($resultadoClone, 'blocked') !== false) {
-             echo $bold . $vermelho . "[!] BYPASS DETECTADO: Git clone sendo redirecionado!\n";
-             echo $bold . $amarelo . "[!] Resposta: " . trim($resultadoClone) . "\n";
-             $bypassDetectado = true;
-         }
-     }
-     
-     $comandoTestPkgReal = 'adb shell "pkg --help 2>&1 | head -1"';
-     $resultadoPkgHelp = shell_exec($comandoTestPkgReal);
-     
-     if (empty($resultadoPkgHelp) || strpos($resultadoPkgHelp, 'Usage:') === false) {
-         $comandoTestPkgInstall = 'adb shell "timeout 3 pkg install --help 2>&1"';
-         $resultadoPkgInstall = shell_exec($comandoTestPkgInstall);
-         
-         if (strpos($resultadoPkgInstall, 'Comando bloqueado') !== false ||
-             strpos($resultadoPkgInstall, 'blocked') !== false ||
-             empty(trim($resultadoPkgInstall))) {
-             echo $bold . $vermelho . "[!] BYPASS DETECTADO: Comando pkg sendo bloqueado!\n";
-             echo $bold . $amarelo . "[!] Resposta: " . trim($resultadoPkgInstall) . "\n";
-             $bypassDetectado = true;
-         }
-     }
-    
-     echo $bold . $azul . "[+] Testando manipulação da função stat...\n";
-     
-     $arquivoTeste = '/data/local/tmp/test_stat_' . time();
-     $comandoCriarArquivo = 'adb shell "echo test > ' . $arquivoTeste . ' 2>/dev/null"';
-     shell_exec($comandoCriarArquivo);
-     
-     sleep(1);
-     $comandoStatTeste = 'adb shell "stat ' . $arquivoTeste . ' 2>/dev/null"';
-     $resultadoStatTeste = shell_exec($comandoStatTeste);
-     
-     if (!empty($resultadoStatTeste)) {
-         preg_match('/Access: (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/', $resultadoStatTeste, $matchAccess);
-         preg_match('/Modify: (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/', $resultadoStatTeste, $matchModify);
-         preg_match('/Change: (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/', $resultadoStatTeste, $matchChange);
-         
-         if ($matchAccess && $matchModify && $matchChange) {
-             $timestampAccess = strtotime($matchAccess[1]);
-             $timestampModify = strtotime($matchModify[1]);
-             $timestampChange = strtotime($matchChange[1]);
-             $timestampAtual = time();
-             
-             $diferencaAtual = abs($timestampAtual - $timestampModify);
-             $diferencaInterna = abs($timestampAccess - $timestampModify);
-             
-             if ($diferencaAtual > 86400 || $diferencaInterna > 300) {
-                 echo $bold . $vermelho . "[!] BYPASS DETECTADO: Função stat retornando dados inconsistentes!\n";
-                 echo $bold . $amarelo . "[!] Arquivo criado agora, mas stat mostra: " . $matchModify[1] . "\n";
-                 $bypassDetectado = true;
-             }
-         }
-     }
-     
-     shell_exec('adb shell "rm -f ' . $arquivoTeste . ' 2>/dev/null"');
-     
-     $caminhoMReplays = '/storage/emulated/0/Android/data/com.dts.freefireth/files/MReplays';
-     $comandoStatMReplays = 'adb shell "stat ' . escapeshellarg($caminhoMReplays) . ' 2>/dev/null"';
-     $resultadoStatMReplays = shell_exec($comandoStatMReplays);
-     
-     if (!empty($resultadoStatMReplays) && preg_match('/Modify: (\d{4}-\d{2}-\d{2})/', $resultadoStatMReplays, $matches)) {
-         $dataModify = $matches[1];
-         if ($dataModify === '2020-01-01' || strtotime($dataModify) < strtotime('2021-01-01')) {
-             echo $bold . $vermelho . "[!] BYPASS DETECTADO: Stat retornando data suspeita para MReplays!\n";
-             echo $bold . $amarelo . "[!] Data suspeita: $dataModify\n";
-             $bypassDetectado = true;
-         }
-     }
-    
-     echo $bold . $azul . "[+] Testando comportamento do comando cd...\n";
-     
-     $comandoTestCd = 'adb shell "cd /tmp 2>/dev/null || cd /data/local/tmp; pwd; cd /; pwd"';
-     $resultadoTestCd = shell_exec($comandoTestCd);
-     
-     if (empty($resultadoTestCd) || strpos($resultadoTestCd, '/') === false) {
-         echo $bold . $vermelho . "[!] BYPASS DETECTADO: Comando cd não está funcionando normalmente!\n";
-         echo $bold . $amarelo . "[!] Resposta: " . trim($resultadoTestCd) . "\n";
-         $bypassDetectado = true;
-     }
-     
-     echo $bold . $azul . "[+] Testando integridade de comandos básicos...\n";
-     
-     $testesComandos = [
-         'which' => ['adb shell "which ls 2>/dev/null"', '/system/bin/ls'],
-         'echo' => ['adb shell "echo test123"', 'test123'],
-         'date' => ['adb shell "date +%Y 2>/dev/null"', date('Y')]
-     ];
-     
-     foreach ($testesComandos as $comando => $teste) {
-         $resultado = trim(shell_exec($teste[0]));
-         if (empty($resultado) || strpos($resultado, $teste[1]) === false) {
-             echo $bold . $vermelho . "[!] BYPASS DETECTADO: Comando '$comando' não retorna resposta esperada!\n";
-             echo $bold . $amarelo . "[!] Esperado: {$teste[1]}, Recebido: $resultado\n";
-             $bypassDetectado = true;
-         }
-     }
-    
-    echo $bold . $azul . "[+] Testando bloqueio de comandos pkg...\n";
-    $comandoTestPkg = 'adb shell "echo \"pkg install com.dts.freefireth\" | bash 2>&1"';
-    $resultadoTestPkg = shell_exec($comandoTestPkg);
-    
-    if (strpos($resultadoTestPkg, 'Comando bloqueado') !== false || 
-        strpos($resultadoTestPkg, 'blocked') !== false) {
-        echo $bold . $vermelho . "[!] BYPASS DETECTADO: Bloqueio de comandos pkg ativo!\n";
-        echo $bold . $amarelo . "[!] Resposta do sistema: " . trim($resultadoTestPkg) . "\n";
-        $bypassDetectado = true;
+    if (!$acessoBloqueado) {
+        echo $bold . $verde . "[✓] Acesso aos diretórios está normal\n" . $cln;
     }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // VERIFICAÇÃO DE PROCESSOS SUSPEITOS
+    // ═══════════════════════════════════════════════════════════════════
+    echo "\n" . $bold . $azul . "┌─────────────────────────────────────────────────────────────────┐\n";
+    echo $bold . $azul . "│ [13] VERIFICANDO PROCESSOS SUSPEITOS                            │\n";
+    echo $bold . $azul . "└─────────────────────────────────────────────────────────────────┘\n" . $cln;
     
-     echo $bold . $azul . "[+] Verificando arquivos de bypass no dispositivo...\n";
-     
-     $comandoArquivosBypass = 'adb shell "find /sdcard /data/local/tmp /data/data/com.termux/files/home -name \"*.sh\" -exec grep -l \"function pkg\\|function git\\|function cd\\|function stat\\|function adb\\|wendell77x\\|FAKE_ADB_SHELL\" {} \\; 2>/dev/null | head -10"';
-     $resultadoArquivosBypass = shell_exec($comandoArquivosBypass);
-     
-     if ($resultadoArquivosBypass !== null && !empty(trim($resultadoArquivosBypass))) {
-         echo $bold . $vermelho . "[!] BYPASS DETECTADO: Arquivos de bypass encontrados!\n";
-         echo $bold . $amarelo . "[!] Arquivos suspeitos:\n" . trim($resultadoArquivosBypass) . "\n";
-         $bypassDetectado = true;
-     }
-     
-     $comandoNomesSuspeitos = 'adb shell "find /sdcard /data/local/tmp /data/data/com.termux/files/home -name \"*block*\" -o -name \"*redirect*\" -o -name \"*bypass*\" -o -name \"*install*\" -o -name \"*hack*\" 2>/dev/null | head -10"';
-     $resultadoNomesSuspeitos = shell_exec($comandoNomesSuspeitos);
-     
-     if ($resultadoNomesSuspeitos !== null && !empty(trim($resultadoNomesSuspeitos))) {
-         echo $bold . $vermelho . "[!] BYPASS DETECTADO: Arquivos com nomes suspeitos encontrados!\n";
-         echo $bold . $amarelo . "[!] Arquivos encontrados:\n" . trim($resultadoNomesSuspeitos) . "\n";
-         $bypassDetectado = true;
-     }
+    $comandoProcessos = 'adb shell "ps -A 2>/dev/null | grep -E \"(bypass|redirect|fake|hide|cloak|stealth)\" | grep -vE \"(drm_fake_vsync|mtk_drm_fake_vsync|mtk_drm_fake_vs)\" 2>/dev/null"';
+    $resultadoProcessos = shell_exec($comandoProcessos);
+    
+    if ($resultadoProcessos !== null && !empty(trim($resultadoProcessos))) {
+        $linhasProcessos = explode("\n", trim($resultadoProcessos));
+        $processosSuspeitos = [];
+        
+        foreach ($linhasProcessos as $linha) {
+            if (!empty(trim($linha)) && 
+                strpos($linha, '[kblockd]') === false && 
+                strpos($linha, 'kworker') === false &&
+                strpos($linha, '[ksoftirqd]') === false &&
+                strpos($linha, '[migration]') === false &&
+                strpos($linha, 'mtk_drm_fake_vsync') === false &&
+                strpos($linha, 'mtk_drm_fake_vs') === false &&
+                strpos($linha, 'drm_fake_vsync') === false) {
+                $processosSuspeitos[] = $linha;
+            }
+        }
+        
+        if (!empty($processosSuspeitos)) {
+            echo $bold . $vermelho . "[!] PROCESSOS SUSPEITOS DETECTADOS:\n" . $cln;
+            foreach ($processosSuspeitos as $proc) {
+                echo $bold . $amarelo . "    • " . $proc . "\n" . $cln;
+            }
+            $bypassDetectado = true;
+            $problemasEncontrados++;
+        } else {
+            echo $bold . $verde . "[✓] Nenhum processo suspeito encontrado\n" . $cln;
+        }
+    } else {
+        echo $bold . $verde . "[✓] Nenhum processo suspeito encontrado\n" . $cln;
+    }
+    $totalVerificacoes++;
+
+    // ═══════════════════════════════════════════════════════════════════
+    // RESUMO FINAL DA ANÁLISE
+    // ═══════════════════════════════════════════════════════════════════
+    echo "\n" . $bold . $ciano . "╔═══════════════════════════════════════════════════════════════════╗\n";
+    echo $bold . $ciano . "║                    RESUMO DA ANÁLISE                              ║\n";
+    echo $bold . $ciano . "╚═══════════════════════════════════════════════════════════════════╝\n\n" . $cln;
+    
+    echo $bold . $branco . "Total de verificações realizadas: " . $totalVerificacoes . "\n";
+    echo $bold . $branco . "Problemas encontrados: " . $problemasEncontrados . "\n\n";
     
     if ($bypassDetectado) {
-        echo $bold . $vermelho . "\n[!] ========== ATENÇÃO ==========\n";
-        echo $bold . $vermelho . "[!] BYPASS DE FUNÇÕES SHELL DETECTADO!\n";
-        echo $bold . $vermelho . "[!] O usuário está utilizando scripts maliciosos!\n";
-        echo $bold . $vermelho . "[!] APLIQUE O W.O IMEDIATAMENTE!\n";
-        echo $bold . $vermelho . "[!] ==============================\n\n";
+        echo $bold . $vermelho . "╔══════════════════════════════════════════════════════════════════╗\n";
+        echo $bold . $vermelho . "║                    ⚠️  ATENÇÃO ⚠️                                 ║\n";
+        echo $bold . $vermelho . "║                                                                  ║\n";
+        echo $bold . $vermelho . "║  MODIFICAÇÕES DE SEGURANÇA DETECTADAS NO DISPOSITIVO!           ║\n";
+        echo $bold . $vermelho . "║  Root, bypass ou hooks foram identificados.                     ║\n";
+        echo $bold . $vermelho . "║  Verifique os detalhes acima e tome as medidas necessárias.     ║\n";
+        echo $bold . $vermelho . "║                                                                  ║\n";
+        echo $bold . $vermelho . "╚══════════════════════════════════════════════════════════════════╝\n" . $cln;
     } else {
-        echo $bold . $fverde . "[i] Nenhum bypass de funções shell detectado.\n\n";
+        echo $bold . $verde . "╔══════════════════════════════════════════════════════════════════╗\n";
+        echo $bold . $verde . "║                    ✓ VERIFICAÇÃO CONCLUÍDA ✓                     ║\n";
+        echo $bold . $verde . "║                                                                  ║\n";
+        echo $bold . $verde . "║  Nenhuma modificação de segurança crítica foi detectada.         ║\n";
+        echo $bold . $verde . "║  O dispositivo parece estar em condições normais.                ║\n";
+        echo $bold . $verde . "║                                                                  ║\n";
+        echo $bold . $verde . "╚══════════════════════════════════════════════════════════════════╝\n" . $cln;
     }
+    
+    echo "\n";
+    
+    return $bypassDetectado;
 }
 
 function inputusuario($message){
@@ -757,18 +1006,18 @@ escolheropcoes:
                                 $conteudoJson = shell_exec('adb shell "cat ' . escapeshellarg($jsonPath) . ' 2>/dev/null"');
                                 
                                 if ($conteudoJson && preg_match('/"Version":"(.*?)"/', $conteudoJson, $matchVersionJson)) {
-                                    $versaoJson = $matchVersionJson[1];
+                                    $versaoJson = trim($matchVersionJson[1]);
                                     
                                     if (!isset($versaoJogoInstaladoTH)) {
                                         $dumpsys = shell_exec('adb shell dumpsys package com.dts.freefireth');
                                         if ($dumpsys && preg_match('/versionName=([\d\.]+)/', $dumpsys, $matchVersionJogo)) {
-                                            $versaoJogoInstaladoTH = $matchVersionJogo[1];
+                                            $versaoJogoInstaladoTH = trim($matchVersionJogo[1]);
                                         } else {
                                             $versaoJogoInstaladoTH = 'Desconhecida';
                                         }
                                     }
                                     
-                                    if ($versaoJogoInstaladoTH !== 'Desconhecida' && $versaoJson !== $versaoJogoInstaladoTH) {
+                                    if ($versaoJogoInstaladoTH !== 'Desconhecida' && !empty($versaoJson) && $versaoJson !== $versaoJogoInstaladoTH) {
                                         $motivos[] = "Motivo 14 - Replay recente (" . date('H:i', $modifyTime) . ") não é do dispositivo: " . basename($jsonPath);
                                     }
                                 }
@@ -1879,18 +2128,18 @@ escolheropcoes:
                                 $conteudoJson = shell_exec('adb shell "cat ' . escapeshellarg($jsonPath) . ' 2>/dev/null"');
                                 
                                 if ($conteudoJson && preg_match('/"Version":"(.*?)"/', $conteudoJson, $matchVersionJson)) {
-                                    $versaoJson = $matchVersionJson[1];
+                                    $versaoJson = trim($matchVersionJson[1]);
                                     
                                     if (!isset($versaoJogoInstaladoMax)) {
                                         $dumpsys = shell_exec('adb shell dumpsys package com.dts.freefiremax');
                                         if ($dumpsys && preg_match('/versionName=([\d\.]+)/', $dumpsys, $matchVersionJogo)) {
-                                            $versaoJogoInstaladoMax = $matchVersionJogo[1];
+                                            $versaoJogoInstaladoMax = trim($matchVersionJogo[1]);
                                         } else {
                                             $versaoJogoInstaladoMax = 'Desconhecida';
                                         }
                                     }
                                     
-                                    if ($versaoJogoInstaladoMax !== 'Desconhecida' && $versaoJson !== $versaoJogoInstaladoMax) {
+                                    if ($versaoJogoInstaladoMax !== 'Desconhecida' && !empty($versaoJson) && $versaoJson !== $versaoJogoInstaladoMax) {
                                         $motivos[] = "Motivo 14 - Replay recente (" . date('H:i', $modifyTime) . ") não é do dispositivo: " . basename($jsonPath);
                                     }
                                 }
