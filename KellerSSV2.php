@@ -60,7 +60,6 @@ function detectarBypassShell() {
     
     echo $bold . $azul . "[+] Verificando funções maliciosas no ambiente shell...\n";
 
-    // Verificação de Verified Boot State
     $verifiedBootState = trim(shell_exec('adb shell getprop ro.boot.verifiedbootstate'));
     if ($verifiedBootState === 'yellow') {
         echo $bold . $amarelo . "[!] Suspeita de Root\n";
@@ -70,11 +69,10 @@ function detectarBypassShell() {
         $bypassDetectado = true;
     }
 
-    // Verificação de KernelSU ou Magisk (Logcat e Dumpsys)
     $rootChecks = [
         'Logcat Kernel' => 'adb shell "logcat -b kernel -d | grep -iE \'kernelsu|magisk\'"',
-        'Dumpsys Package' => 'adb shell "dumpsys package | grep -iE \'kernelsu|magisk\'"',
-        'Dumpsys Activity' => 'adb shell "dumpsys activity | grep -iE \'kernelsu|magisk\'"',
+        'Dumpsys Package' => 'adb shell "dumpsys package | grep -iE \'kernelsu|magisk\' | grep -v queriesPackages"',
+        'Dumpsys Activity' => 'adb shell "dumpsys activity | grep -iE \'kernelsu|magisk\' | grep -v queriesPackages"',
         'Dumpsys Processes' => 'adb shell "dumpsys activity processes | grep -iE \'kernelsu|magisk\'"'
     ];
 
@@ -82,6 +80,7 @@ function detectarBypassShell() {
         $output = shell_exec($cmd);
         if ($output && !empty(trim($output))) {
             echo $bold . $vermelho . "[!] Root detectado\n";
+            echo $bold . $amarelo . "[!] Detalhes encontrados:\n" . trim($output) . "\n" . $cln;
             $bypassDetectado = true;
         }
     }
