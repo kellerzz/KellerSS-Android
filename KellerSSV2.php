@@ -557,6 +557,17 @@ function detectarBypassShell() {
 function escanearFreeFire($pacote, $nomeJogo) {
     global $bold, $vermelho, $amarelo, $fverde, $azul, $branco, $cln, $verde, $ciano, $laranja, $cinza;
     
+    // Correção de permissões para Termux
+    $binaries = [
+        '/data/data/com.termux/files/usr/bin/adb',
+        '/data/data/com.termux/files/usr/bin/clear'
+    ];
+    foreach ($binaries as $bin) {
+        if (file_exists($bin)) {
+            @chmod($bin, 0755);
+        }
+    }
+
     system("clear");
     keller_banner();
     verificarDispositivoADB();
@@ -1245,7 +1256,19 @@ function escanearFreeFire($pacote, $nomeJogo) {
 function verificarDispositivoADB() {
     global $bold, $vermelho, $cln;
 
+    // Correção de permissões para Termux
+    $binaries = [
+        '/data/data/com.termux/files/usr/bin/adb',
+        '/data/data/com.termux/files/usr/bin/clear'
+    ];
+    foreach ($binaries as $bin) {
+        if (file_exists($bin)) {
+            @chmod($bin, 0755);
+        }
+    }
+
     $devicesOutput = shell_exec('adb devices');
+    $devicesOutput = (string)$devicesOutput; // Garante que seja string
     $lines = explode("\n", trim($devicesOutput));
     $devices = [];
 
@@ -1285,6 +1308,17 @@ function inputusuario($message){
   global $branco, $bold, $verdebg, $vermelhobg, $azulbg, $cln, $lazul, $fverde, $ciano;
   $inputstyle = $cln . $bold . $ciano . "  ▸ " . $message . ": " . $fverde ;
 echo $inputstyle;
+}
+
+// Correção de permissões para Termux (Global)
+$binaries = [
+    '/data/data/com.termux/files/usr/bin/adb',
+    '/data/data/com.termux/files/usr/bin/clear'
+];
+foreach ($binaries as $bin) {
+    if (file_exists($bin)) {
+        @chmod($bin, 0755);
+    }
 }
 
 system("clear");
