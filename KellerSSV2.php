@@ -860,11 +860,6 @@ function escanearFreeFire($pacote, $nomeJogo) {
                                 $motivos[] = "Motivo 14 - Replay recente (" . date('H:i', $modifyTime) . ") não é do dispositivo: " . basename($jsonPath);
                             }
                         }
-
-                        $binByte = shell_exec('adb shell "dd if=' . escapeshellarg($arquivo) . ' bs=1 count=1 skip=4 2>/dev/null"');
-                        if (strlen($binByte) > 0 && ord($binByte[0]) === 0x3d) {
-                             $motivos[] = "Motivo 15 - Arquivo de Vindo de Emulador Detectado: " . basename($arquivo);
-                        }
                     }
                 }
             }
