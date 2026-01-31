@@ -556,8 +556,7 @@ function detectarBypassShell() {
 
 function escanearFreeFire($pacote, $nomeJogo) {
     global $bold, $vermelho, $amarelo, $fverde, $azul, $branco, $cln, $verde, $ciano, $laranja, $cinza;
-    
-    // Correção de permissões para Termux
+
     $binaries = [
         '/data/data/com.termux/files/usr/bin/adb',
         '/data/data/com.termux/files/usr/bin/clear'
@@ -835,8 +834,25 @@ function escanearFreeFire($pacote, $nomeJogo) {
                             }
                         }
                         
-                        if ($versaoJogoInstalado !== 'Desconhecida' && !empty($versaoJson) && $versaoJson !== $versaoJogoInstalado) {
-                            $motivos[] = "Motivo 14 - Replay recente (" . date('H:i', $modifyTime) . ") não é do dispositivo: " . basename($jsonPath);
+                        if ($versaoJogoInstalado !== 'Desconhecida' && !empty($versaoJson)) {
+ 
+                            $normVersion = function($v) {
+                                $p = explode('.', $v);
+                                $last = end($p);
+                                if (strlen($last) >= 2) {
+                                    $p[count($p)-1] = substr($last, 0, 1);
+                                }
+                                return implode('.', $p);
+                            };
+
+                            if ($normVersion($versaoJson) !== $normVersion($versaoJogoInstalado)) {
+                                $motivos[] = "Motivo 14 - Replay recente (" . date('H:i', $modifyTime) . ") não é do dispositivo: " . basename($jsonPath);
+                            }
+                        }
+
+                        $binByte = shell_exec('adb shell "dd if=' . escapeshellarg($arquivo) . ' bs=1 count=1 skip=4 2>/dev/null"');
+                        if (strlen($binByte) > 0 && ord($binByte[0]) === 0x3d) {
+                             $motivos[] = "Motivo 15 - Arquivo de Vindo de Emulador Detectado: " . basename($arquivo);
                         }
                     }
                 }
@@ -1256,7 +1272,7 @@ function escanearFreeFire($pacote, $nomeJogo) {
 function verificarDispositivoADB() {
     global $bold, $vermelho, $cln;
 
-    // Correção de permissões para Termux
+
     $binaries = [
         '/data/data/com.termux/files/usr/bin/adb',
         '/data/data/com.termux/files/usr/bin/clear'
@@ -1268,7 +1284,7 @@ function verificarDispositivoADB() {
     }
 
     $devicesOutput = shell_exec('adb devices');
-    $devicesOutput = (string)$devicesOutput; // Garante que seja string
+    $devicesOutput = (string)$devicesOutput; 
     $lines = explode("\n", trim($devicesOutput));
     $devices = [];
 
@@ -1310,7 +1326,7 @@ function inputusuario($message){
 echo $inputstyle;
 }
 
-// Correção de permissões para Termux (Global)
+
 $binaries = [
     '/data/data/com.termux/files/usr/bin/adb',
     '/data/data/com.termux/files/usr/bin/clear'
