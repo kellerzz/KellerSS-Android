@@ -533,6 +533,77 @@ function detectarBypassShell() {
     }
     $totalVerificacoes++;
 
+    echo "\n" . $bold . $azul . "┌─────────────────────────────────────────────────────────────────┐\n";
+    echo $bold . $azul . "│ [14] VERIFICAÇÃO DE REDE E APPS SUSPEITOS                       │\n";
+    echo $bold . $azul . "└─────────────────────────────────────────────────────────────────┘\n" . $cln;
+
+
+    $interfaces = shell_exec('adb shell "ip link 2>/dev/null | grep -E \'tun0|ppp0|wg0\'"');
+    if ($interfaces && !empty(trim($interfaces))) {
+        echo $bold . $vermelho . "  ✗ VPN/Tunelamento Detectado (Pode ocultar tráfego):\n" . $cln;
+        echo $bold . $amarelo . "    " . trim($interfaces) . "\n" . $cln;
+        $bypassDetectado = true;
+        $problemasEncontrados++;
+    } else {
+        echo $bold . $verde . "  ✓ Nenhuma interface VPN ativa encontrada\n" . $cln;
+    }
+
+    $privateDns = trim(shell_exec('adb shell "settings get global private_dns_mode 2>/dev/null"'));
+    $dns1 = trim(shell_exec('adb shell "getprop net.dns1 2>/dev/null"'));
+    
+    if ($privateDns === 'hostname' || ($privateDns !== 'off' && $privateDns !== 'null' && !empty($privateDns))) {
+        echo $bold . $amarelo . "  ⚠ DNS Privado Ativo (Mode: $privateDns) - Verifique se não bloqueia logs\n" . $cln;
+        $problemasEncontrados++;
+    } elseif (in_array($dns1, ['1.1.1.1', '8.8.8.8', '9.9.9.9'])) {
+        echo $bold . $amarelo . "  ⚠ DNS Público Detectado ($dns1) - Atenção para redirecionamentos\n" . $cln;
+    } else {
+        echo $bold . $verde . "  ✓ Configuração de DNS aparentemente normal\n" . $cln;
+    }
+
+    $appsSuspeitos = [
+        'moe.shizuku.privileged.api' => 'Shizuku (API)',
+        'shizuku.service' => 'Shizuku (Service)',
+        'com.lexa.fakegps' => 'Fake GPS',
+        'com.incorporateapps.fakegps.fre' => 'Fake GPS Free',
+        'com.lbe.parallel' => 'Parallel Space',
+        'com.excelliance.multiaccounts' => 'Multi Accounts',
+        'trickystore' => 'TrickyStore (Bypass)',
+        'shamiko' => 'Shamiko (Hide Root)'
+    ];
+
+    $pacotesInstalados = shell_exec('adb shell "pm list packages 2>/dev/null"');
+    $appDetectado = false;
+
+    if ($pacotesInstalados) {
+        foreach ($appsSuspeitos as $pkg => $nome) {
+            if (strpos($pacotesInstalados, $pkg) !== false) {
+                echo $bold . $amarelo . "  ⚠ App Suspeito Instalado: $nome ($pkg)\n" . $cln;
+                $appDetectado = true;
+                $problemasEncontrados++;
+            }
+        }
+    }
+
+    if (!$appDetectado) {
+        echo $bold . $verde . "  ✓ Nenhum app de manipulação conhecido encontrado\n" . $cln;
+    }
+
+    $tmpFiles = shell_exec('adb shell "ls -A /data/local/tmp 2>/dev/null"');
+    if ($tmpFiles && !empty(trim($tmpFiles))) {
+        echo $bold . $amarelo . "  ⚠ Arquivos encontrados em /data/local/tmp (Local comum para exploits):\n" . $cln;
+        $files = explode("\n", trim($tmpFiles));
+        $count = 0;
+        foreach ($files as $f) {
+            if ($count < 5) echo $bold . $amarelo . "    • $f\n" . $cln;
+            $count++;
+        }
+        if (count($files) > 5) echo $bold . $amarelo . "    • ... e mais " . (count($files) - 5) . " arquivos\n" . $cln;
+        $problemasEncontrados++;
+    } else {
+        echo $bold . $verde . "  ✓ Pasta /data/local/tmp limpa\n" . $cln;
+    }
+    $totalVerificacoes++;
+
     echo "\n" . $bold . $ciano . "╔═══════════════════════════════════════════════════════════════════╗\n";
     echo $bold . $ciano . "║                    RESUMO DA ANÁLISE                              ║\n";
     echo $bold . $ciano . "╚═══════════════════════════════════════════════════════════════════╝\n\n" . $cln;
