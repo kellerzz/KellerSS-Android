@@ -23,12 +23,8 @@ $ciano = "\e[36m";
 $bold   = "\e[1m";
 function keller_banner(){
   echo "\e[97m
-    ╔══════════════════════════════════════════════════════════════╗
-    ║                                                              ║
-    ║            \e[97mKellerSS Android \e[36mFucking Cheaters\e[97m                ║
-    ║                \e[90mdiscord.gg/allianceoficial\e[97m                    ║
-    ║                                                              ║
-    ╚══════════════════════════════════════════════════════════════╝
+    \e[97mKellerSS Android \e[36mFucking Cheaters\e[97m
+    \e[90mdiscord.gg/allianceoficial\e[97m
 
                             )       (     (          (     
                         ( /(       )\ )  )\ )       )\ )  
@@ -64,13 +60,11 @@ function detectarBypassShell() {
     $problemasEncontrados = 0;
     
     echo "\n";
-    echo $bold . $ciano . "╔═══════════════════════════════════════════════════════════════════╗\n";
-    echo $bold . $ciano . "║          ANÁLISE COMPLETA DE SEGURANÇA DO DISPOSITIVO             ║\n";
-    echo $bold . $ciano . "╚═══════════════════════════════════════════════════════════════════╝\n\n" . $cln;
+    echo $bold . $ciano . "ANÁLISE COMPLETA DE SEGURANÇA DO DISPOSITIVO\n";
+    echo $bold . $ciano . "============================================\n\n" . $cln;
 
-    echo $bold . $azul . "┌─────────────────────────────────────────────────────────────────┐\n";
-    echo $bold . $azul . "│ [1] VERIFICANDO DISPOSITIVO CONECTADO                           │\n";
-    echo $bold . $azul . "└─────────────────────────────────────────────────────────────────┘\n" . $cln;
+    echo $bold . $azul . "► [1] VERIFICANDO DISPOSITIVO CONECTADO\n";
+    echo $bold . $azul . "---------------------------------------\n" . $cln;
     
     $devices = shell_exec('adb devices 2>&1');
     if (strpos($devices, 'device') === false || strpos($devices, 'unauthorized') !== false) {
@@ -87,9 +81,8 @@ function detectarBypassShell() {
     echo $bold . $verde . "  ✓ Dispositivo conectado com permissões adequadas\n\n" . $cln;
 
 
-    echo $bold . $azul . "┌─────────────────────────────────────────────────────────────────┐\n";
-    echo $bold . $azul . "│ [2] VERIFICANDO ESTADO DE BOOT VERIFICADO                       │\n";
-    echo $bold . $azul . "└─────────────────────────────────────────────────────────────────┘\n" . $cln;
+    echo $bold . $azul . "► [2] VERIFICANDO ESTADO DE BOOT VERIFICADO\n";
+    echo $bold . $azul . "-------------------------------------------\n" . $cln;
     
     $verifiedBootState = trim(shell_exec('adb shell getprop ro.boot.verifiedbootstate 2>/dev/null'));
     
@@ -109,9 +102,8 @@ function detectarBypassShell() {
     $totalVerificacoes++;
 
 
-    echo "\n" . $bold . $azul . "┌─────────────────────────────────────────────────────────────────┐\n";
-    echo $bold . $azul . "│ [3] VERIFICANDO STATUS DO SELINUX                               │\n";
-    echo $bold . $azul . "└─────────────────────────────────────────────────────────────────┘\n" . $cln;
+    echo "\n" . $bold . $azul . "► [3] VERIFICANDO STATUS DO SELINUX\n";
+    echo $bold . $azul . "-----------------------------------\n" . $cln;
     
     $selinux = trim(shell_exec('adb shell getenforce 2>/dev/null'));
     
@@ -127,9 +119,8 @@ function detectarBypassShell() {
     $totalVerificacoes++;
 
 
-    echo "\n" . $bold . $azul . "┌─────────────────────────────────────────────────────────────────┐\n";
-    echo $bold . $azul . "│ [4] VERIFICANDO PROPRIEDADES DO SISTEMA                         │\n";
-    echo $bold . $azul . "└─────────────────────────────────────────────────────────────────┘\n" . $cln;
+    echo "\n" . $bold . $azul . "► [4] VERIFICANDO PROPRIEDADES DO SISTEMA\n";
+    echo $bold . $azul . "-----------------------------------------\n" . $cln;
     
     $propriedadesSuspeitas = [
         'ro.debuggable' => ['valor' => '1', 'descricao' => 'Modo debug ativado'],
@@ -156,9 +147,8 @@ function detectarBypassShell() {
     echo $bold . $verde . "  ✓ Verificação de propriedades concluída\n" . $cln;
 
 
-    echo "\n" . $bold . $azul . "┌─────────────────────────────────────────────────────────────────┐\n";
-    echo $bold . $azul . "│ [5] VERIFICANDO BINÁRIOS SU (SUPERUSUÁRIO)                      │\n";
-    echo $bold . $azul . "└─────────────────────────────────────────────────────────────────┘\n" . $cln;
+    echo "\n" . $bold . $azul . "► [5] VERIFICANDO BINÁRIOS SU (SUPERUSUÁRIO)\n";
+    echo $bold . $azul . "--------------------------------------------\n" . $cln;
     
     $binariosSU = [
         '/system/bin/su',
@@ -198,9 +188,8 @@ function detectarBypassShell() {
     }
 
 
-    echo "\n" . $bold . $azul . "┌─────────────────────────────────────────────────────────────────┐\n";
-    echo $bold . $azul . "│ [6] DETECÇÃO AVANÇADA DE MAGISK                                 │\n";
-    echo $bold . $azul . "└─────────────────────────────────────────────────────────────────┘\n" . $cln;
+    echo "\n" . $bold . $azul . "► [6] DETECÇÃO AVANÇADA DE MAGISK\n";
+    echo $bold . $azul . "---------------------------------\n" . $cln;
     
     $magiskDetectado = false;
     
@@ -254,9 +243,8 @@ function detectarBypassShell() {
         echo $bold . $verde . "  ✓ Nenhum vestígio de Magisk encontrado\n" . $cln;
     }
 
-    echo "\n" . $bold . $azul . "┌─────────────────────────────────────────────────────────────────┐\n";
-    echo $bold . $azul . "│ [7] DETECÇÃO DE KERNELSU                                        │\n";
-    echo $bold . $azul . "└─────────────────────────────────────────────────────────────────┘\n" . $cln;
+    echo "\n" . $bold . $azul . "► [7] DETECÇÃO DE KERNELSU\n";
+    echo $bold . $azul . "--------------------------\n" . $cln;
     
     $kernelsuDetectado = false;
     
@@ -300,9 +288,8 @@ function detectarBypassShell() {
     }
 
 
-    echo "\n" . $bold . $azul . "┌─────────────────────────────────────────────────────────────────┐\n";
-    echo $bold . $azul . "│ [8] DETECÇÃO DE APATCH                                          │\n";
-    echo $bold . $azul . "└─────────────────────────────────────────────────────────────────┘\n" . $cln;
+    echo "\n" . $bold . $azul . "► [8] DETECÇÃO DE APATCH\n";
+    echo $bold . $azul . "------------------------\n" . $cln;
     
     $apatchDetectado = false;
     
@@ -336,9 +323,8 @@ function detectarBypassShell() {
         echo $bold . $verde . "  ✓ Nenhum vestígio de APatch encontrado\n" . $cln;
     }
 
-    echo "\n" . $bold . $azul . "┌─────────────────────────────────────────────────────────────────┐\n";
-    echo $bold . $azul . "│ [9] ANÁLISE DE LOGS DO KERNEL E SISTEMA                         │\n";
-    echo $bold . $azul . "└─────────────────────────────────────────────────────────────────┘\n" . $cln;
+    echo "\n" . $bold . $azul . "► [9] ANÁLISE DE LOGS DO KERNEL E SISTEMA\n";
+    echo $bold . $azul . "-----------------------------------------\n" . $cln;
     
     $logChecks = [
         'Logcat Kernel' => 'adb shell "logcat -b kernel -d 2>/dev/null | grep -iE \'kernelsu|magisk|apatch\'"',
@@ -364,9 +350,8 @@ function detectarBypassShell() {
         echo $bold . $verde . "  ✓ Logs do sistema limpos\n" . $cln;
     }
 
-    echo "\n" . $bold . $azul . "┌─────────────────────────────────────────────────────────────────┐\n";
-    echo $bold . $azul . "│ [10] DETECÇÃO DE FRAMEWORKS DE HOOK                            │\n";
-    echo $bold . $azul . "└─────────────────────────────────────────────────────────────────┘\n" . $cln;
+    echo "\n" . $bold . $azul . "► [10] DETECÇÃO DE FRAMEWORKS DE HOOK\n";
+    echo $bold . $azul . "-------------------------------------\n" . $cln;
     
     $hookFrameworks = [
         'Xposed' => [
@@ -425,9 +410,8 @@ function detectarBypassShell() {
         echo $bold . $verde . "  ✓ Nenhum framework de hook detectado\n" . $cln;
     }
 
-    echo "\n" . $bold . $azul . "┌─────────────────────────────────────────────────────────────────┐\n";
-    echo $bold . $azul . "│ [11] VERIFICANDO FUNÇÕES SHELL SOBRESCRITAS                     │\n";
-    echo $bold . $azul . "└─────────────────────────────────────────────────────────────────┘\n" . $cln;
+    echo "\n" . $bold . $azul . "► [11] VERIFICANDO FUNÇÕES SHELL SOBRESCRITAS\n";
+    echo $bold . $azul . "---------------------------------------------\n" . $cln;
     
     $funcoesTeste = [
         'pkg' => 'adb shell "type pkg 2>/dev/null | grep -q function && echo FUNCTION_DETECTED"',
@@ -456,9 +440,8 @@ function detectarBypassShell() {
         echo $bold . $verde . "  ✓ Todas as funções shell estão normais\n" . $cln;
     }
 
-    echo "\n" . $bold . $azul . "┌─────────────────────────────────────────────────────────────────┐\n";
-    echo $bold . $azul . "│ [12] TESTANDO ACESSO A DIRETÓRIOS CRÍTICOS                      │\n";
-    echo $bold . $azul . "└─────────────────────────────────────────────────────────────────┘\n" . $cln;
+    echo "\n" . $bold . $azul . "► [12] TESTANDO ACESSO A DIRETÓRIOS CRÍTICOS\n";
+    echo $bold . $azul . "--------------------------------------------\n" . $cln;
     
     $diretoriosCriticos = [
         '/system/bin' => 'Binários do sistema',
@@ -494,9 +477,8 @@ function detectarBypassShell() {
         echo $bold . $verde . "  ✓ Acesso aos diretórios está normal\n" . $cln;
     }
 
-    echo "\n" . $bold . $azul . "┌─────────────────────────────────────────────────────────────────┐\n";
-    echo $bold . $azul . "│ [13] VERIFICANDO PROCESSOS SUSPEITOS                            │\n";
-    echo $bold . $azul . "└─────────────────────────────────────────────────────────────────┘\n" . $cln;
+    echo "\n" . $bold . $azul . "► [13] VERIFICANDO PROCESSOS SUSPEITOS\n";
+    echo $bold . $azul . "--------------------------------------\n" . $cln;
     
     $comandoProcessos = 'adb shell "ps -A 2>/dev/null | grep -E \"(bypass|redirect|fake|hide|cloak|stealth)\" | grep -vE \"(drm_fake_vsync|mtk_drm_fake_vsync|mtk_drm_fake_vs)\" 2>/dev/null"';
     $resultadoProcessos = shell_exec($comandoProcessos);
@@ -533,9 +515,8 @@ function detectarBypassShell() {
     }
     $totalVerificacoes++;
 
-    echo "\n" . $bold . $azul . "┌─────────────────────────────────────────────────────────────────┐\n";
-    echo $bold . $azul . "│ [14] VERIFICAÇÃO DE REDE E APPS SUSPEITOS                       │\n";
-    echo $bold . $azul . "└─────────────────────────────────────────────────────────────────┘\n" . $cln;
+    echo "\n" . $bold . $azul . "► [14] VERIFICAÇÃO DE REDE E APPS SUSPEITOS\n";
+    echo $bold . $azul . "-------------------------------------------\n" . $cln;
 
 
     $interfaces = shell_exec('adb shell "ip link 2>/dev/null | grep -E \'tun0|ppp0|wg0\'"');
@@ -588,46 +569,71 @@ function detectarBypassShell() {
         echo $bold . $verde . "  ✓ Nenhum app de manipulação conhecido encontrado\n" . $cln;
     }
 
+    // 4. Verificação de Arquivos em /data/local/tmp
     $tmpFiles = shell_exec('adb shell "ls -A /data/local/tmp 2>/dev/null"');
     if ($tmpFiles && !empty(trim($tmpFiles))) {
-        echo $bold . $amarelo . "  ⚠ Arquivos encontrados em /data/local/tmp (Local comum para exploits):\n" . $cln;
+        echo $bold . $amarelo . "  ⚠ Arquivos encontrados em /data/local/tmp:\n" . $cln;
+        
         $files = explode("\n", trim($tmpFiles));
+        
+        // Assinaturas de arquivos conhecidos
+        $knownSignatures = [
+            'mantis' => 'Mantis Gamepad (Keymapper - Proibido)',
+            'buddy' => 'Mantis/Panda Activator (Keymapper)',
+            'panda' => 'Panda Mouse Pro (Keymapper - Proibido)',
+            'vysor' => 'Vysor (Espelhamento/Controle - Suspeito)',
+            'scrcpy' => 'Scrcpy (Espelhamento - Suspeito)',
+            'frida' => 'Frida Server (Ferramenta de Hooking)',
+            'magisk' => 'Magisk Root (Arquivo Residual)',
+            'busybox' => 'BusyBox (Ferramenta de Sistema)',
+            'su' => 'Binário SU (Root)',
+            '2' => 'Script Temporário Genérico (Ativação Keymapper)'
+        ];
+
         $count = 0;
         foreach ($files as $f) {
-            if ($count < 5) echo $bold . $amarelo . "    • $f\n" . $cln;
+            $f = trim($f);
+            if (empty($f)) continue;
+
+            $identified = false;
+            foreach ($knownSignatures as $sig => $desc) {
+                if (stripos($f, $sig) !== false) {
+                    echo $bold . $vermelho . "    ✗ DETECTADO: $f -> $desc\n" . $cln;
+                    $identified = true;
+                    $bypassDetectado = true; // Considera bypass se encontrar ferramenta proibida
+                    break;
+                }
+            }
+
+            if (!$identified) {
+                if ($count < 5) echo $bold . $amarelo . "    • $f (Arquivo desconhecido)\n" . $cln;
+            }
             $count++;
         }
-        if (count($files) > 5) echo $bold . $amarelo . "    • ... e mais " . (count($files) - 5) . " arquivos\n" . $cln;
+        
+        if ($count > 5) echo $bold . $amarelo . "    • ... e mais " . ($count - 5) . " arquivos\n" . $cln;
         $problemasEncontrados++;
     } else {
         echo $bold . $verde . "  ✓ Pasta /data/local/tmp limpa\n" . $cln;
     }
     $totalVerificacoes++;
 
-    echo "\n" . $bold . $ciano . "╔═══════════════════════════════════════════════════════════════════╗\n";
-    echo $bold . $ciano . "║                    RESUMO DA ANÁLISE                              ║\n";
-    echo $bold . $ciano . "╚═══════════════════════════════════════════════════════════════════╝\n\n" . $cln;
+    echo "\n" . $bold . $ciano . "► RESUMO DA ANÁLISE\n";
+    echo $bold . $ciano . "-------------------\n\n" . $cln;
     
     echo $bold . $branco . "Total de verificações realizadas: " . $totalVerificacoes . "\n";
     echo $bold . $branco . "Problemas encontrados: " . $problemasEncontrados . "\n\n";
     
     if ($bypassDetectado) {
-        echo $bold . $vermelho . "╔══════════════════════════════════════════════════════════════════╗\n";
-        echo $bold . $vermelho . "║                    ⚠️  ATENÇÃO ⚠️                                 ║\n";
-        echo $bold . $vermelho . "║                                                                  ║\n";
-        echo $bold . $vermelho . "║  MODIFICAÇÕES DE SEGURANÇA DETECTADAS NO DISPOSITIVO!           ║\n";
-        echo $bold . $vermelho . "║  Root, bypass ou hooks foram identificados.                     ║\n";
-        echo $bold . $vermelho . "║  Verifique os detalhes acima e tome as medidas necessárias.     ║\n";
-        echo $bold . $vermelho . "║                                                                  ║\n";
-        echo $bold . $vermelho . "╚══════════════════════════════════════════════════════════════════╝\n" . $cln;
+        echo "\n" . $bold . $vermelho . "⚠️  ATENÇÃO: MODIFICAÇÕES DETECTADAS! ⚠️\n";
+        echo $bold . $vermelho . "----------------------------------------\n";
+        echo $bold . $vermelho . "Root, bypass ou hooks foram identificados.\n";
+        echo $bold . $vermelho . "Verifique os detalhes acima e tome as medidas necessárias.\n" . $cln;
     } else {
-        echo $bold . $verde . "╔══════════════════════════════════════════════════════════════════╗\n";
-        echo $bold . $verde . "║                    ✓ VERIFICAÇÃO CONCLUÍDA ✓                     ║\n";
-        echo $bold . $verde . "║                                                                  ║\n";
-        echo $bold . $verde . "║  Nenhuma modificação de segurança crítica foi detectada.         ║\n";
-        echo $bold . $verde . "║  O dispositivo parece estar em condições normais.                ║\n";
-        echo $bold . $verde . "║                                                                  ║\n";
-        echo $bold . $verde . "╚══════════════════════════════════════════════════════════════════╝\n" . $cln;
+        echo "\n" . $bold . $verde . "✓ VERIFICAÇÃO CONCLUÍDA ✓\n";
+        echo $bold . $verde . "-------------------------\n";
+        echo $bold . $verde . "Nenhuma modificação de segurança crítica foi detectada.\n";
+        echo $bold . $verde . "O dispositivo parece estar em condições normais.\n" . $cln;
     }
     
     echo "\n";
