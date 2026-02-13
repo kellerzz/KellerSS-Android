@@ -570,6 +570,28 @@ function detectarBypassShell() {
     }
 
 
+
+    echo $bold . $azul . "  ► [15] VERIFICAÇÃO DE ARQUIVOS EM /DATA/LOCAL/TMP\n";
+    echo $bold . $azul . "  ------------------------------------------------\n" . $cln;
+
+    $permOutput = shell_exec('adb shell "ls -ld /data/local/tmp 2>/dev/null"');
+
+    
+    $isReadable = false;
+    if ($permOutput && preg_match('/^d[r-][w-][x-][r-][w-][x-][r-][w-][x-]/', trim($permOutput))) {
+        $isReadable = true;
+    }
+    
+    $checkPerm = shell_exec('adb shell "ls /data/local/tmp/kellerss_check_perm 2>&1"');
+    
+    if (strpos($checkPerm, 'Permission denied') !== false) {
+        echo $bold . $vermelho . "  [!] ACESSO NEGADO: Não é possível ler /data/local/tmp!\n";
+        echo $bold . $amarelo . "      O usuário removeu permissões de leitura para ocultar arquivos.\n";
+        echo $bold . $amarelo . "      Aplique o W.O imediatamente.\n" . $cln;
+        $bypassDetectado = true;
+        $problemasEncontrados++;
+    } else {
+
     $statDirOutput = shell_exec('adb shell "stat /data/local/tmp 2>/dev/null"');
     $dirTimestamp = 0;
     if (preg_match('/Modify:\s+(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})/', $statDirOutput, $matches)) {
@@ -646,6 +668,104 @@ function detectarBypassShell() {
         echo $bold . $branco . "      Último Arquivo:     " . date("H:i:s", $maxFileTimestamp) . "\n" . $cln;
         $bypassDetectado = true;
         $problemasEncontrados++;
+    }
+    } 
+    $totalVerificacoes++;
+
+    echo "\n" . $bold . $azul . "  ► [16] VERIFICANDO APLICATIVOS DESINSTALADOS SUSPEITOS\n";
+    echo $bold . $azul . "  ---------------------------------------------------------\n" . $cln;
+
+    $cmdLogUninstall = 'adb shell "logcat -d -v time -s ActivityManager:I PackageManager:I | grep -iE \"deletePackageX|pkg removed\""';
+    $logOutput = shell_exec($cmdLogUninstall);
+
+    $appsRemovidos = [];
+    $foundUninstall = false;
+
+    if ($logOutput && !empty(trim($logOutput))) {
+        $lines = explode("\n", trim($logOutput));
+        $now = new DateTime();
+        $oneHourAgo = (clone $now)->modify('-1 hour');
+        $currentYear = date('Y');
+
+        foreach ($lines as $line) {
+            if (preg_match('/^(\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d{3}).*?Force stopping\s+([^\s]+)\s+appid=\d+\s+user=(\d+):\s*(deletePackageX|pkg removed)/i', $line, $matches)) {
+                $timeStr = $matches[1];
+                $pkgName = $matches[2];
+                $user = $matches[3];
+                $action = $matches[4];
+                
+                if (strcasecmp($action, 'deletePackageX') !== 0) {
+                    continue;
+                }
+                
+                $logDate = DateTime::createFromFormat('Y-m-d H:i:s.u', "$currentYear-$timeStr");
+                
+                if ($logDate) {
+
+                    if ($logDate > $now) {
+                        $logDate->modify('-1 year');
+                    }
+
+                    if ($logDate >= $oneHourAgo && $logDate <= $now) {
+    
+                        $wasManual = false;
+                        
+
+                        $checkManualCmd = 'adb shell "logcat -d -v time | grep -iE \"android.intent.action.DELETE|UninstallerActivity\" | grep \"' . $pkgName . '\""';
+                        $manualCheck = shell_exec($checkManualCmd);
+                        
+                        if (!empty(trim($manualCheck))) {
+
+                            if (preg_match('/(\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d{3})/', $manualCheck, $manualMatches)) {
+                                $manualTimeStr = $manualMatches[1];
+                                $manualDate = DateTime::createFromFormat('Y-m-d H:i:s.u', "$currentYear-$manualTimeStr");
+                                
+                                if ($manualDate && $manualDate > $now) {
+                                    $manualDate->modify('-1 year');
+                                }
+                                
+                                if ($manualDate) {
+                                    $diff = $logDate->getTimestamp() - $manualDate->getTimestamp();
+                                    if ($diff >= 0 && $diff <= 20) {
+                                        $wasManual = true;
+                                    }
+                                }
+                            }
+                        }
+                        
+
+                        if (!$wasManual) {
+                            $key = $pkgName . '_' . $logDate->format('YmdHis');
+                            if (!isset($appsRemovidos[$key])) {
+                                $appsRemovidos[$key] = [
+                                    'pkg' => $pkgName,
+                                    'time' => $logDate->format('d/m/Y H:i:s'),
+                                    'user' => $user,
+                                    'method' => 'Comando/Script (SEM interface gráfica)'
+                                ];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if (!empty($appsRemovidos)) {
+        foreach ($appsRemovidos as $info) {
+            echo $bold . $vermelho . "  [!] DESINSTALAÇÃO SUSPEITA DETECTADA!\n";
+            echo $bold . $amarelo . "      Pacote: " . $info['pkg'] . "\n";
+            echo $bold . $amarelo . "      Horário: " . $info['time'] . "\n";
+            echo $bold . $amarelo . "      Usuário: " . $info['user'] . "\n";
+            echo $bold . $vermelho . "      Método: " . $info['method'] . "\n";
+            echo $bold . $vermelho . "      ⚠️  Desinstalação via comando (possível bypass de root)\n" . $cln;
+            $foundUninstall = true;
+        }
+        $bypassDetectado = true;
+        $problemasEncontrados++;
+    } else {
+        echo $bold . $verde . "  ✓ Nenhuma desinstalação suspeita detectada (1h)\n" . $cln;
+        echo $bold . $verde . "      (Desinstalações manuais são ignoradas)\n" . $cln;
     }
     $totalVerificacoes++;
 
@@ -880,6 +1000,14 @@ function escanearFreeFire($pacote, $nomeJogo) {
 
     echo $bold . $azul . "  → Checando se o replay foi passado...\n";
 
+    $mreplaysDir = "/sdcard/Android/data/" . $pacote . "/files/MReplays";
+    $checkPermM = shell_exec('adb shell "ls ' . escapeshellarg($mreplaysDir) . ' 2>&1 | head -n 1"');
+    if (strpos($checkPermM, 'Permission denied') !== false) {
+        echo $bold . $vermelho . "  [!] ACESSO NEGADO: $mreplaysDir\n";
+        echo $bold . $amarelo . "      Permissão de leitura removida! Possível ocultação de arquivos.\n";
+        echo $bold . $amarelo . "      Aplique o W.O imediatamente.\n" . $cln;
+    }
+
     $comandoArquivos = 'adb shell "ls -t /sdcard/Android/data/' . $pacote . '/files/MReplays/*.bin 2>/dev/null"';
     $output = shell_exec($comandoArquivos) ?? '';
     $arquivos = array_filter(explode("\n", trim($output)));
@@ -1101,6 +1229,13 @@ function escanearFreeFire($pacote, $nomeJogo) {
     $modificacaoDetectada = false;
 
     foreach ($pastasParaVerificar as $pasta) {
+        $checkPerm = shell_exec('adb shell "ls ' . escapeshellarg($pasta) . ' 2>&1 | head -n 1"');
+        if (strpos($checkPerm, 'Permission denied') !== false) {
+            echo $bold . $vermelho . "  [!] ACESSO NEGADO: $pasta\n";
+            echo $bold . $amarelo . "      Permissão de leitura removida! TENTATIVA DE BYPASS!\n";
+            $modificacaoDetectada = true;
+        }
+
         $resultadoStat = shell_exec('adb shell "stat ' . escapeshellarg($pasta) . ' 2>/dev/null"');
 
         if (
@@ -1171,6 +1306,13 @@ function escanearFreeFire($pacote, $nomeJogo) {
     echo $bold . $azul . "  → Checando OBB...\n";
 
     $diretorioObb = "/sdcard/Android/obb/" . $pacote;
+    $checkPermObb = shell_exec('adb shell "ls ' . escapeshellarg($diretorioObb) . ' 2>&1 | head -n 1"');
+    if (strpos($checkPermObb, 'Permission denied') !== false) {
+        echo $bold . $vermelho . "  [!] ACESSO NEGADO: $diretorioObb\n";
+        echo $bold . $amarelo . "      Permissão de leitura removida! TENTATIVA DE BYPASS!\n";
+        echo $bold . $amarelo . "      Aplique o W.O imediatamente.\n" . $cln;
+    }
+
     $comandoObb = 'adb shell "ls ' . escapeshellarg($diretorioObb) . '/*obb* 2>/dev/null"';
     $resultadoObb = shell_exec($comandoObb);
 
