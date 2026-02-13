@@ -1061,44 +1061,7 @@ function escanearFreeFire($pacote, $nomeJogo) {
                 }
             }
             
-            if ($indice < 3) {
-                $tresHorasAtras = time() - (3 * 3600);
-                
-                if ($modifyTime >= $tresHorasAtras) {
 
-                    $jsonPath = str_replace('.bin', '.json', $arquivo);
-                    $conteudoJson = shell_exec('adb shell "cat ' . escapeshellarg($jsonPath) . ' 2>/dev/null"');
-                    
-                    if ($conteudoJson && preg_match('/"Version":"(.*?)"/', $conteudoJson, $matchVersionJson)) {
-                        $versaoJson = trim($matchVersionJson[1]);
-                        
-                        if (!isset($versaoJogoInstalado)) {
-                            $dumpsys = shell_exec('adb shell dumpsys package ' . escapeshellarg($pacote));
-                            if ($dumpsys && preg_match('/versionName=([\d\.]+)/', $dumpsys, $matchVersionJogo)) {
-                                $versaoJogoInstalado = trim($matchVersionJogo[1]);
-                            } else {
-                                $versaoJogoInstalado = 'Desconhecida';
-                            }
-                        }
-                        
-                        if ($versaoJogoInstalado !== 'Desconhecida' && !empty($versaoJson)) {
- 
-                            $normVersion = function($v) {
-                                $p = explode('.', $v);
-                                $last = end($p);
-                                if (strlen($last) >= 2) {
-                                    $p[count($p)-1] = substr($last, 0, 1);
-                                }
-                                return implode('.', $p);
-                            };
-
-                            if ($normVersion($versaoJson) !== $normVersion($versaoJogoInstalado)) {
-                                $motivos[] = "Motivo 14 - Replay recente (" . date('H:i', $modifyTime) . ") não é do dispositivo: " . basename($jsonPath);
-                            }
-                        }
-                    }
-                }
-            }
         }
     }
     
