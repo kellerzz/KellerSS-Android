@@ -67,13 +67,13 @@ function detectarBypassShell() {
     echo $bold . $azul . "  ---------------------------------------\n" . $cln;
     
     $devices = shell_exec('adb devices 2>&1');
-    if (strpos($devices, 'device') === false || strpos($devices, 'unauthorized') !== false) {
+    if ($devices === null || strpos($devices, 'device') === false || strpos($devices, 'unauthorized') !== false) {
         echo $bold . $vermelho . "  [✗] Nenhum dispositivo detectado ou sem autorização!\n" . $cln;
         return false;
     }
     
     $check = shell_exec('adb shell "ls /sdcard 2>&1"');
-    if (strpos($check, 'Permission denied') !== false) {
+    if ($check !== null && strpos($check, 'Permission denied') !== false) {
         echo $bold . $vermelho . "  [✗] ADB sem permissões suficientes!\n" . $cln;
         return false;
     }
@@ -584,7 +584,7 @@ function detectarBypassShell() {
     
     $checkPerm = shell_exec('adb shell "ls /data/local/tmp/kellerss_check_perm 2>&1"');
     
-    if (strpos($checkPerm, 'Permission denied') !== false) {
+    if ($checkPerm !== null && strpos($checkPerm, 'Permission denied') !== false) {
         echo $bold . $vermelho . "  [!] ACESSO NEGADO: Não é possível ler /data/local/tmp!\n";
         echo $bold . $amarelo . "      O usuário removeu permissões de leitura para ocultar arquivos.\n";
         echo $bold . $amarelo . "      Aplique o W.O imediatamente.\n" . $cln;
@@ -1002,7 +1002,7 @@ function escanearFreeFire($pacote, $nomeJogo) {
 
     $mreplaysDir = "/sdcard/Android/data/" . $pacote . "/files/MReplays";
     $checkPermM = shell_exec('adb shell "ls ' . escapeshellarg($mreplaysDir) . ' 2>&1 | head -n 1"');
-    if (strpos($checkPermM, 'Permission denied') !== false) {
+    if ($checkPermM !== null && strpos($checkPermM, 'Permission denied') !== false) {
         echo $bold . $vermelho . "  [!] ACESSO NEGADO: $mreplaysDir\n";
         echo $bold . $amarelo . "      Permissão de leitura removida! Possível ocultação de arquivos.\n";
         echo $bold . $amarelo . "      Aplique o W.O imediatamente.\n" . $cln;
@@ -1193,7 +1193,7 @@ function escanearFreeFire($pacote, $nomeJogo) {
 
     foreach ($pastasParaVerificar as $pasta) {
         $checkPerm = shell_exec('adb shell "ls ' . escapeshellarg($pasta) . ' 2>&1 | head -n 1"');
-        if (strpos($checkPerm, 'Permission denied') !== false) {
+        if ($checkPerm !== null && strpos($checkPerm, 'Permission denied') !== false) {
             echo $bold . $vermelho . "  [!] ACESSO NEGADO: $pasta\n";
             echo $bold . $amarelo . "      Permissão de leitura removida! TENTATIVA DE BYPASS!\n";
             $modificacaoDetectada = true;
@@ -1270,7 +1270,7 @@ function escanearFreeFire($pacote, $nomeJogo) {
 
     $diretorioObb = "/sdcard/Android/obb/" . $pacote;
     $checkPermObb = shell_exec('adb shell "ls ' . escapeshellarg($diretorioObb) . ' 2>&1 | head -n 1"');
-    if (strpos($checkPermObb, 'Permission denied') !== false) {
+    if ($checkPermObb !== null && strpos($checkPermObb, 'Permission denied') !== false) {
         echo $bold . $vermelho . "  [!] ACESSO NEGADO: $diretorioObb\n";
         echo $bold . $amarelo . "      Permissão de leitura removida! TENTATIVA DE BYPASS!\n";
         echo $bold . $amarelo . "      Aplique o W.O imediatamente.\n" . $cln;
