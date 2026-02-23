@@ -328,8 +328,8 @@ function detectarBypassShell() {
     
     $logChecks = [
         'Logcat Kernel' => 'adb shell "logcat -b kernel -d 2>/dev/null | grep -iE \'kernelsu|magisk|apatch\'"',
-        'Dumpsys Package' => 'adb shell "dumpsys package 2>/dev/null | grep -iE \'kernelsu|magisk|apatch\' | grep -v queriesPackages | grep -vE \'KernelSupport|Freecess|ChinaPolicy\'"',
-        'Dumpsys Activity' => 'adb shell "dumpsys activity 2>/dev/null | grep -iE \'kernelsu|magisk|apatch\' | grep -v queriesPackages | grep -vE \'KernelSupport|Freecess|ChinaPolicy\'"',
+        'Dumpsys Package' => 'adb shell "dumpsys package 2>/dev/null | grep -iE \'kernelsu|magisk|apatch\' | grep -v queriesPackages | grep -vE \'KernelSupport|Freecess|ChinaPolicy\' | grep -v \"used by other apps\""',
+        'Dumpsys Activity' => 'adb shell "dumpsys activity 2>/dev/null | grep -iE \'kernelsu|magisk|apatch\' | grep -v queriesPackages | grep -vE \'KernelSupport|Freecess|ChinaPolicy\' | grep -v \"used by other apps\""',
         'Dumpsys Processes' => 'adb shell "dumpsys activity processes 2>/dev/null | grep -iE \'kernelsu|magisk|apatch\'"'
     ];
 
