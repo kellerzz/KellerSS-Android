@@ -1067,7 +1067,7 @@ function escanearFreeFire($pacote, $nomeJogo) {
     
 
     $pastaMReplays = "/sdcard/Android/data/" . $pacote . "/files/MReplays";
-    $resultadoPasta = shell_exec('adb shell "stat ' . escapeshellarg($pastaMReplays) . ' 2>/dev/null"');
+    $resultadoPasta = (string)shell_exec('adb shell "stat ' . escapeshellarg($pastaMReplays) . ' 2>/dev/null"');
     
     if (
         preg_match('/Access: (.*?)\n/', $resultadoPasta, $matchAccessPasta) &&
@@ -1199,7 +1199,7 @@ function escanearFreeFire($pacote, $nomeJogo) {
             $modificacaoDetectada = true;
         }
 
-        $resultadoStat = shell_exec('adb shell "stat ' . escapeshellarg($pasta) . ' 2>/dev/null"');
+        $resultadoStat = (string)shell_exec('adb shell "stat ' . escapeshellarg($pasta) . ' 2>/dev/null"');
 
         if (
             preg_match('/Access: (.*?)\n/', $resultadoStat, $matchAccess) &&
