@@ -714,7 +714,7 @@ function detectarBypassShell() {
                         $checkManualCmd = 'adb shell "logcat -d -v time | grep -iE \"android.intent.action.DELETE|UninstallerActivity\" | grep \"' . $pkgName . '\""';
                         $manualCheck = shell_exec($checkManualCmd);
                         
-                        if (!empty(trim($manualCheck))) {
+                        if ($manualCheck !== null && trim($manualCheck) !== '') {
 
                             if (preg_match('/(\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d{3})/', $manualCheck, $manualMatches)) {
                                 $manualTimeStr = $manualMatches[1];
@@ -1327,6 +1327,22 @@ function escanearFreeFire($pacote, $nomeJogo) {
     
             if (!is_string($resultadoVerificaUnityFS) || strpos($resultadoVerificaUnityFS, "UnityFS") === false) {
                 continue;
+            }
+
+            if (stripos($nomeArquivo, 'shader') !== false) {
+                $cmdNano = 'adb shell "stat -c \"%y\" ' . escapeshellarg($arquivo) . ' 2>/dev/null"';
+                $nanoOut = trim((string)shell_exec($cmdNano));
+                if ($nanoOut !== '' && preg_match('/\.(\d+)\s/', $nanoOut, $nanoMatches)) {
+                    $ns = $nanoMatches[1];
+                    if (preg_match('/^(0+|9+)$/', $ns)) {
+                        echo $bold . $vermelho . "  ✗ Possível bypass detectado: nanosegundos suspeitos em shader.\n";
+                        echo $bold . $amarelo . "  ⚠ Arquivo: $nomeArquivo\n";
+                        echo $bold . $amarelo . "  • Timestamp: " . $nanoOut . "\n\n";
+                        $encontrouBypass = true;
+                        $arquivoSuspeito = $nomeArquivo;
+                        break;
+                    }
+                }
             }
     
             $comandoStat = 'adb shell "stat ' . escapeshellarg($arquivo) . ' 2>/dev/null"';
