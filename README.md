@@ -94,11 +94,65 @@ Contribuições são bem vindas! Por favor me chame no privado do discord `kelle
 
 Um grande agradecimento aos membros abaixo por seu trabalho incrível e contribuições sobre bypass:
 
+<div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; text-align: center;">
 
-<div style="text-align:; font-weight: bold; margin-bottom: 10px;"> ㅤKellerㅤㅤSheikㅤ ㅤRibeiroㅤㅤㅤPxㅤㅤㅤㅤHgㅤㅤApelaㅤㅤBrisado </div> <table> <tr> <td style="text-align: center; margin-right: 20px;"> <a href="https://www.instagram.com/kellerffx"> <img src="https://i.imgur.com/25Qrvbh.png" alt="kellerSS" style="width: 50px; height: 50px;"> </a> </td> <td style="text-align: center; margin-right: 20px;"> <a href="https://discord.gg/allianceoficial"> <img src="https://i.imgur.com/DkHpc3a.jpeg" alt="sheik" style="width: 50px; height: 50px; object-fit: cover;"> </a> </td> <td style="text-align: center; margin-right: 20px;"> <a href="https://www.instagram.com/Ribeirowxz"> <img src="https://i.imgur.com/xqmiMSG.png" alt="ribeiro" style="width: 50px; height: 50px;"> </a> </td> <td style="text-align: center;"> <a href="https://discord.gg/allianceoficial"> <img src="https://i.imgur.com/8BUhE5T.jpeg" alt="PX" style="width: 50px; height: 50px;"> </a> </td> <td style="text-align: center; margin-right: 20px;"> <a href="https://www.instagram.com/_hugomoises"> <img src="https://i.imgur.com/8QVfHn2.png" alt="hg" style="width: 50px; height: 50px;"> </a> </td> <td style="text-align: center;"> <a href="https://discord.gg/allianceoficial"> <img src="https://i.imgur.com/Fyk08YR.jpeg" alt="apela" style="width: 50px; height: 50px;"> </a> </td> <td style="text-align: center; margin-left: 20px;"> <a href="https://discord.gg/allianceoficial"> <img src="https://i.imgur.com/97jqgpN.png" alt="brisado" style="width: 50px; height: 50px;"> </a> </td> </tr> </table>
+  <div>
+    <div style="font-weight: bold; margin-bottom: 5px;">Keller</div>
+    <a href="https://www.instagram.com/kellerffx" target="_blank">
+      <img src="https://i.imgur.com/25Qrvbh.png" alt="kellerSS" style="width: 50px; height: 50px; border-radius: 5px;">
+    </a>
+  </div>
 
+  <div>
+    <div style="font-weight: bold; margin-bottom: 5px;">Sheik</div>
+    <a href="https://discord.gg/allianceoficial" target="_blank">
+      <img src="https://i.imgur.com/DkHpc3a.jpeg" alt="sheik" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;">
+    </a>
+  </div>
 
+  <div>
+    <div style="font-weight: bold; margin-bottom: 5px;">Ribeiro</div>
+    <a href="https://www.instagram.com/Ribeirowxz" target="_blank">
+      <img src="https://i.imgur.com/xqmiMSG.png" alt="ribeiro" style="width: 50px; height: 50px; border-radius: 5px;">
+    </a>
+  </div>
 
+  <div>
+    <div style="font-weight: bold; margin-bottom: 5px;">Px</div>
+    <a href="https://discord.gg/allianceoficial" target="_blank">
+      <img src="https://i.imgur.com/8BUhE5T.jpeg" alt="PX" style="width: 50px; height: 50px; border-radius: 5px;">
+    </a>
+  </div>
+
+  <div>
+    <div style="font-weight: bold; margin-bottom: 5px;">Hg</div>
+    <a href="https://www.instagram.com/_hugomoises" target="_blank">
+      <img src="https://i.imgur.com/8QVfHn2.png" alt="hg" style="width: 50px; height: 50px; border-radius: 5px;">
+    </a>
+  </div>
+
+  <div>
+    <div style="font-weight: bold; margin-bottom: 5px;">Apela</div>
+    <a href="https://discord.gg/allianceoficial" target="_blank">
+      <img src="https://i.imgur.com/Fyk08YR.jpeg" alt="apela" style="width: 50px; height: 50px; border-radius: 5px;">
+    </a>
+  </div>
+
+  <div>
+    <div style="font-weight: bold; margin-bottom: 5px;">Brisado</div>
+    <a href="https://discord.gg/allianceoficial" target="_blank">
+      <img src="https://i.imgur.com/97jqgpN.png" alt="brisado" style="width: 50px; height: 50px; border-radius: 5px;">
+    </a>
+  </div>
+
+  <div>
+    <div style="font-weight: bold; margin-bottom: 5px;">Thx</div>
+    <a href="https://discord.gg/allianceoficial" target="_blank">
+      <img src="https://i.imgur.com/HIlxnmH.png" alt="thx" style="width: 50px; height: 50px; border-radius: 5px;">
+    </a>
+  </div>
+
+</div>
 
 ## 🎗 Licença
 
