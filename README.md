@@ -47,25 +47,6 @@ O projeto tem como principal função facilitar o trabalho dos analistas em suas
 | [Tutorial](https://www.youtube.com/watch?v=RF7O1MHThsE&t=8s) | Tutorial ensinando a como utilizar   |
 
 
-
-
-
-#### <img width="2%" src="https://simpleicons.org/icons/gnometerminal.svg">&emsp13; Rode utilizando o Termux:
-
-#### <img width="2%" src="https://simpleicons.org/icons/termius.svg">&emsp13; Após abrir o Termux, dividindo a tela com o pareamento wifi aberto, rode os comandos abaixo:
-
-```sh
-❯ adb pair localhost:porta codigopareamento
-
-```
-
-#### <img width="2%" src="https://simpleicons.org/icons/termius.svg">&emsp13; Após parear, a porta irá atualizar, então suba nas opções e confira a nova porta.
-
-```sh
-❯ adb connect localhost:portaatualizada
-
-```
-
 #### <img width="2%" src="https://simpleicons.org/icons/termius.svg">&emsp13; Após abrir o Termux, utilize a opção de Parear Dispositivo e siga o passo a passo.
 
 ```sh
