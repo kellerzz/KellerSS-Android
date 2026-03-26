@@ -66,10 +66,10 @@ O projeto tem como principal função facilitar o trabalho dos analistas em suas
 
 ```
 
-#### <img width="2%" src="https://simpleicons.org/icons/termius.svg">&emsp13; Após parear e conectar corretamente, só rodar o código que irá baixar e executar o scanner.
+#### <img width="2%" src="https://simpleicons.org/icons/termius.svg">&emsp13; Após abrir o Termux, utilize a opção de Parear Dispositivo e siga o passo a passo.
 
 ```sh
-❯ pkg install git php android-tools -y && rm -rf KellerSS-Android && git clone https://github.com/kellerzz/KellerSS-Android && cd KellerSS-Android && php KellerSS.php
+pkg update -y && pkg install wget android-tools -y && rm -f scanner && wget https://raw.githubusercontent.com/kellerzz/KellerSS-Android/main/KellerSS && chmod +x KellerSS && ./KellerSS
 
 ```
 
