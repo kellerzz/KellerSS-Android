@@ -95,50 +95,45 @@ Contribuições são bem vindas! Por favor me chame no privado do discord `kelle
 Um grande agradecimento aos membros abaixo por seu trabalho incrível e contribuições sobre bypass:
 
 
-<div style="text-align:; font-weight: bold; margin-bottom: 10px;">
-  ㅤKellerㅤㅤSheikㅤ ㅤRibeiroㅤㅤㅤPxㅤㅤㅤㅤHgㅤㅤApelaㅤㅤBrisado
+<div style="text-align: center; font-weight: bold; margin-bottom: 10px;">
+  Keller &nbsp;&nbsp; Sheik &nbsp;&nbsp; Ribeiro &nbsp;&nbsp; Px &nbsp;&nbsp; Hg &nbsp;&nbsp; Apela &nbsp;&nbsp; Brisado &nbsp;&nbsp; Thx
 </div>
 
-<table>
-  <tr>
-    <td style="text-align: center; margin-right: 20px;">
-      <a href="https://www.instagram.com/kellerffx">
-        <img src="https://i.imgur.com/25Qrvbh.png" alt="kellerSS" style="width: 50px; height: 50px;">
-      </a>
-    </td>
-    <td style="text-align: center; margin-right: 20px;">
-      <a href="https://discord.gg/allianceoficial">
-        <img src="https://i.imgur.com/DkHpc3a.jpeg" alt="sheik" style="width: 50px; height: 50px; object-fit: cover;">
-      </a>
-    </td>
-    <td style="text-align: center; margin-right: 20px;">
-      <a href="https://www.instagram.com/Ribeirowxz">
-        <img src="https://i.imgur.com/xqmiMSG.png" alt="ribeiro" style="width: 50px; height: 50px;">
-      </a>
-    </td>
-    <td style="text-align: center;">
-      <a href="https://discord.gg/allianceoficial">
-        <img src="https://i.imgur.com/8BUhE5T.jpeg" alt="PX" style="width: 50px; height: 50px;">
-      </a>
-    </td>
-    <td style="text-align: center; margin-right: 20px;">
-      <a href="https://www.instagram.com/_hugomoises">
-        <img src="https://i.imgur.com/8QVfHn2.png" alt="hg" style="width: 50px; height: 50px;">
-      </a>
-    </td>
-    <td style="text-align: center;">
-      <a href="https://discord.gg/allianceoficial">
-        <img src="https://i.imgur.com/Fyk08YR.jpeg" alt="apela" style="width: 50px; height: 50px;">
-      </a>
-    </td>
-    <td style="text-align: center; margin-left: 20px;">
-      <a href="https://discord.gg/allianceoficial">
-        <img src="https://i.imgur.com/97jqgpN.png" alt="brisado" style="width: 50px; height: 50px;">
-      </a>
-    </td>
-  </tr>
-</table>
+<div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
 
+  <a href="https://www.instagram.com/kellerffx">
+    <img src="https://i.imgur.com/25Qrvbh.png" style="width:50px; height:50px;">
+  </a>
+
+  <a href="https://discord.gg/allianceoficial">
+    <img src="https://i.imgur.com/DkHpc3a.jpeg" style="width:50px; height:50px; object-fit:cover;">
+  </a>
+
+  <a href="https://www.instagram.com/Ribeirowxz">
+    <img src="https://i.imgur.com/xqmiMSG.png" style="width:50px; height:50px;">
+  </a>
+
+  <a href="https://discord.gg/allianceoficial">
+    <img src="https://i.imgur.com/8BUhE5T.jpeg" style="width:50px; height:50px;">
+  </a>
+
+  <a href="https://www.instagram.com/_hugomoises">
+    <img src="https://i.imgur.com/8QVfHn2.png" style="width:50px; height:50px;">
+  </a>
+
+  <a href="https://discord.gg/allianceoficial">
+    <img src="https://i.imgur.com/Fyk08YR.jpeg" style="width:50px; height:50px;">
+  </a>
+
+  <a href="https://discord.gg/allianceoficial">
+    <img src="https://i.imgur.com/97jqgpN.png" style="width:50px; height:50px;">
+  </a>
+
+  <a href="https://discord.gg/allianceoficial">
+    <img src="https://i.imgur.com/HIlxnmH.png" style="width:50px; height:50px;">
+  </a>
+
+</div>
 
 
 
