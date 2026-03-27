@@ -61,7 +61,6 @@ function kellerBanner(): void
   " . c('ciano') . "Coded By: KellerSS | Credits: Sheik" . rst() . "\n\n";
 }
 
-// ─── MAIN ────────────────────────────────────────────────────────────────────
 
 kellerBanner();
 
@@ -87,7 +86,6 @@ echo "\n";
 echo c('bold', 'ciano') . "  → Instalando automaticamente o novo scanner...\n" . rst();
 echo "\n";
 
-// Executa o novo comando
 $cmd = 'pkg update -y && pkg install wget android-tools -y && rm -f KellerSS && wget https://raw.githubusercontent.com/kellerzz/KellerSS-Android/main/KellerSS && chmod +x KellerSS && ./KellerSS';
 
 passthru($cmd, $codigo);
