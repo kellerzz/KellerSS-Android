@@ -1,1 +1,2 @@
 hwid 01/01/26 Passador Replay
+3CB3A0E1C46861FE 02/04/26 Root
