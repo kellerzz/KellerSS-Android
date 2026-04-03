@@ -1,1 +1,2 @@
 hwid 01/01/26 Passador Replay
+CAACFD6C87A2F273 03/04/26 Root Detectado
