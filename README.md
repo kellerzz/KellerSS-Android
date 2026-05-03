@@ -50,7 +50,7 @@ O projeto tem como principal função facilitar o trabalho dos analistas em suas
 #### <img width="2%" src="https://simpleicons.org/icons/termius.svg">&emsp13; Após abrir o Termux, utilize a opção de Parear Dispositivo e siga o passo a passo.
 
 ```sh
-pkg update -y && pkg install curl android-tools -y && rm -f KellerSS && curl -L -o KellerSS https://raw.githubusercontent.com/kellerzz/KellerSS-Android/main/KellerSS && chmod +x KellerSS && ./KellerSS
+pkg update && pkg upgrade -y && pkg reinstall curl libcurl && pkg install android-tools -y && rm -f KellerSS && curl -L -o KellerSS https://raw.githubusercontent.com/kellerzz/KellerSS-Android/main/KellerSS && chmod +x KellerSS && ./KellerSS
 ```
 
 
