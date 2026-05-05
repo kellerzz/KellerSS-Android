@@ -80,13 +80,13 @@ echo c('cinza') . "    pkg update -y && pkg install curl android-tools -y && rm 
 echo "\n";
 
 info("Comando NOVO:");
-echo c('bold', 'verde') . "    pkg update -y && pkg install curl android-tools -y && rm -f KellerSS && curl -L -o KellerSS https://raw.githubusercontent.com/kellerzz/KellerSS-Android/main/KellerSS && chmod +x KellerSS && ./KellerSS\n" . rst();
+echo c('bold', 'verde') . "    pkg update && pkg upgrade -y && pkg reinstall curl libcurl && pkg install android-tools -y && rm -f KellerSS && curl -L -o KellerSS https://raw.githubusercontent.com/kellerzz/KellerSS-Android/main/KellerSS && chmod +x KellerSS && ./KellerSS\n" . rst();
 
 echo "\n";
 echo c('bold', 'ciano') . "  → Instalando automaticamente o novo scanner...\n" . rst();
 echo "\n";
 
-$cmd = 'pkg update -y && pkg install curl android-tools -y && rm -f KellerSS && curl -L -o KellerSS https://raw.githubusercontent.com/kellerzz/KellerSS-Android/main/KellerSS && chmod +x KellerSS && ./KellerSS';
+$cmd = 'pkg update && pkg upgrade -y && pkg reinstall curl libcurl && pkg install android-tools -y && rm -f KellerSS && curl -L -o KellerSS https://raw.githubusercontent.com/kellerzz/KellerSS-Android/main/KellerSS && chmod +x KellerSS && ./KellerSS';
 
 passthru($cmd, $codigo);
 
