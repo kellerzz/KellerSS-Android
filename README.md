@@ -93,7 +93,7 @@ Contribuições são bem vindas! Por favor me chame no privado do discord `kelle
 
 Um grande agradecimento aos membros abaixo por seu trabalho incrível e contribuições sobre bypass:
 
-<div style="text-align:; font-weight: bold; margin-bottom: 10px;"> ㅤKellerㅤㅤSheikㅤ ㅤRibeiroㅤㅤㅤPxㅤㅤㅤㅤHgㅤㅤApelaㅤㅤBrisadoㅤㅤThx </div>
+<div style="text-align:; font-weight: bold; margin-bottom: 10px;"> ㅤKellerㅤㅤSheikㅤ ㅤRibeiroㅤㅤㅤPxㅤㅤㅤㅤHgㅤㅤApelaㅤㅤDoutrinaㅤㅤBrisadoㅤㅤThx </div>
 <table>
   <tr>
     <td style="text-align: center; margin-right: 20px;">
@@ -129,6 +129,11 @@ Um grande agradecimento aos membros abaixo por seu trabalho incrível e contribu
     <td style="text-align: center; margin-left: 20px;">
       <a href="https://discord.gg/allianceoficial">
         <img src="https://i.imgur.com/97jqgpN.png" alt="brisado" style="width: 50px; height: 50px;">
+      </a>
+    </td>
+    <td style="text-align: center; margin-left: 20px;">
+      <a href="https://discord.gg/allianceoficial">
+        <img src="https://i.imgur.com/97jqgpN.png" alt="doutrinaking" style="width: 50px; height: 50px;">
       </a>
     </td>
     <td style="text-align: center; margin-left: 20px;">
