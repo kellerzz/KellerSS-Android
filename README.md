@@ -133,7 +133,7 @@ Um grande agradecimento aos membros abaixo por seu trabalho incrível e contribu
     </td>
     <td style="text-align: center; margin-left: 20px;">
       <a href="https://discord.gg/allianceoficial">
-        <img src="https://i.imgur.com/97jqgpN.png" alt="doutrinaking" style="width: 50px; height: 50px;">
+        <img src="https://i.imgur.com/9mzmb9u.png" alt="doutrinaking" style="width: 50px; height: 50px;">
       </a>
     </td>
     <td style="text-align: center; margin-left: 20px;">
